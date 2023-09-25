@@ -44,19 +44,19 @@ var (
 		Use:   "add",
 		Short: "Add user capabilities",
 		Long: `Add user capabilities in form 
-
-"users|buckets=*|read|write|read,write"
-
-Add multiple capabilities to user:
-
---caps "buckets=*,users=read"`,
+	
+	"users|buckets=*|read|write|read,write"
+	
+	Add multiple capabilities to user:
+	
+	--caps "buckets=*;users=read"`,
+		Args: cobra.ExactArgs(1), // Require exactly 1 argument (UID)
 		Run: func(cmd *cobra.Command, args []string) {
 			user := &User{
-				ID:          userName,
-				DisplayName: userFullname,
-				Email:       userEmail,
-				UserCaps:    userCaps,
+				ID:       args[0], // Use the first argument as the UID
+				UserCaps: userCaps,
 			}
+			fmt.Println(user.UserCaps)
 			if user.ID == "" || user.UserCaps == "" {
 				cmd.Help()
 				os.Exit(1)
@@ -73,19 +73,17 @@ Add multiple capabilities to user:
 		Use:   "remove",
 		Short: "Remove user capabilities",
 		Long: `Remove user capabilities in form 
-
-"users|buckets=*|read|write|read,write"
-
-Remove multiple capabilities to user:
-
---caps "buckets=*,users=read"`,
+	
+	"users|buckets=*|read|write|read,write"
+	
+	Remove multiple capabilities to user:
+	
+	--caps "buckets=*;users=read"`,
+		Args: cobra.ExactArgs(1), // Require exactly 1 argument (UID)
 		Run: func(cmd *cobra.Command, args []string) {
-
 			user := &User{
-				ID:          userName,
-				DisplayName: userFullname,
-				Email:       userEmail,
-				UserCaps:    userCaps,
+				ID:       args[0], // Use the first argument as the UID
+				UserCaps: userCaps,
 			}
 
 			if user.ID == "" || user.UserCaps == "" {
@@ -107,9 +105,8 @@ func init() {
 	capsCmd.AddCommand(addCapsCmd)
 	capsCmd.AddCommand(removeCapsCmd)
 	userCmd.MarkFlagRequired("user")
-	addCapsCmd.MarkFlagRequired("user")
-	removeCapsCmd.MarkFlagRequired("user")
-	userCmd.MarkFlagRequired("caps")
+	addCapsCmd.MarkFlagRequired("caps")
+	removeCapsCmd.MarkFlagRequired("caps")
 }
 
 func addUserCaps(user User) error {

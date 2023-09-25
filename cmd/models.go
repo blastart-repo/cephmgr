@@ -13,6 +13,10 @@ type UserKeySpec struct {
 	User      string `json:"user"`
 	AccessKey string `json:"access_key" url:"access-key"`
 	SecretKey string `json:"secret_key" url:"secret-key"`
+	// Request fields
+	UID         string `url:"uid"`          // The user ID to receive the new key
+	KeyType     string `url:"key-type"`     // s3 or swift
+	GenerateKey *bool  `url:"generate-key"` // Generate a new key pair and add to the existing keyring
 }
 
 type UserCapSpec struct {

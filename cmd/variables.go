@@ -8,5 +8,5 @@ var (
 	userCaps     string
 	userEmail    string
 	userFullname string
-	userName     string
+	userID       string
 )

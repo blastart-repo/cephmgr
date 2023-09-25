@@ -94,6 +94,7 @@ func getBucketInfo(bucket Bucket) error {
 	if err != nil {
 		return err
 	}
+
 	fmt.Println("after getbucketinfo")
 	w := tabwriter.NewWriter(os.Stdout, 10, 1, 5, ' ', 0)
 
