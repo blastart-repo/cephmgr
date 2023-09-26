@@ -14,7 +14,7 @@ var (
 		Use:   "keys",
 		Short: "User keys operations",
 		Long:  `User keys operations`,
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(cmd *cobra.Command, _ []string) {
 			cmd.Help()
 		},
 	}

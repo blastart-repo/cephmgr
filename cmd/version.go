@@ -1,6 +1,5 @@
 /*
 Copyright © 2022 Tarmo Katmuk <tarmo.katmuk@gmail.com>
-
 */
 package cmd
 
@@ -21,7 +20,7 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Show app version",
 	Long:  `Show cephmgr application version`,
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		fmt.Printf("cephmgr %s %s (%s)\n", Version, Commit[:7], Date)
 	},
 }

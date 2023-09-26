@@ -36,7 +36,7 @@ var (
 		Use:   "caps",
 		Short: "User Capabilities operations",
 		Long:  `User Capabilities operations`,
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(cmd *cobra.Command, _ []string) {
 			cmd.Help()
 		},
 	}
@@ -56,7 +56,6 @@ var (
 				ID:       args[0], // Use the first argument as the UID
 				UserCaps: userCaps,
 			}
-			fmt.Println(user.UserCaps)
 			if user.ID == "" || user.UserCaps == "" {
 				cmd.Help()
 				os.Exit(1)
@@ -66,6 +65,8 @@ var (
 			if err != nil {
 				fmt.Println(err)
 				cmd.Help()
+			} else {
+				fmt.Println("New user capability added.")
 			}
 		},
 	}
@@ -115,14 +116,12 @@ func addUserCaps(user User) error {
 		return err
 	}
 
-	userCaps, err := c.AddUserCap(context.Background(), user.ID, user.UserCaps)
+	_, err = c.AddUserCap(context.Background(), user.ID, user.UserCaps)
 
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("User ID: %s\n", user.ID)
-	fmt.Println(userCaps)
 	return nil
 }
 

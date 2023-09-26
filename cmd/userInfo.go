@@ -55,7 +55,7 @@ var (
 		Use:   "list",
 		Short: "Get a list of users",
 		Long:  `get list of users from the cluster.`,
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(cmd *cobra.Command, _ []string) {
 			err := listUsers()
 			if err != nil {
 				fmt.Println(err)
@@ -85,7 +85,6 @@ func getUser(user User) error {
 	}
 
 	w := tabwriter.NewWriter(os.Stdout, 10, 1, 5, ' ', 0)
-	fmt.Println(u.Keys) // ajutiselt lisatud keyde muutmise kontrolliks
 	fs := "%s\t%s\t%s\t%v\n"
 	fmt.Fprintln(w, "UID\tFull Name\tEmail\tCaps")
 	fmt.Fprintf(w, fs, u.ID, u.DisplayName, u.Email, u.Caps)

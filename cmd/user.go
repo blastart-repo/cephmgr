@@ -7,7 +7,7 @@ var (
 		Use:   "user",
 		Short: "Ceph users operations",
 		Long:  `Get users information. Create new users. Change users caps`,
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(cmd *cobra.Command, _ []string) {
 			cmd.Help()
 		},
 	}

@@ -30,7 +30,7 @@ var rgwCmd = &cobra.Command{
 	Use:   "rgw",
 	Short: "rgw module",
 	Long:  `A Ceph rgw module`,
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(cmd *cobra.Command, _ []string) {
 		cmd.Help()
 	},
 }

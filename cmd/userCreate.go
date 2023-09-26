@@ -18,7 +18,7 @@ var (
 You can also provide capabilities for user with --caps flag:
 
 --caps "buckets=*"`,
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(cmd *cobra.Command, _ []string) {
 
 			user := &User{
 				ID:          userID,
