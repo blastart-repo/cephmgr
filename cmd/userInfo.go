@@ -85,7 +85,7 @@ func getUser(user User) error {
 	}
 
 	w := tabwriter.NewWriter(os.Stdout, 10, 1, 5, ' ', 0)
-
+	fmt.Println(u.Keys) // ajutiselt lisatud keyde muutmise kontrolliks
 	fs := "%s\t%s\t%s\t%v\n"
 	fmt.Fprintln(w, "UID\tFull Name\tEmail\tCaps")
 	fmt.Fprintf(w, fs, u.ID, u.DisplayName, u.Email, u.Caps)
