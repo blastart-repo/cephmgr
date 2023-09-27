@@ -11,6 +11,9 @@ builds:
   # - binary: pioctl
   - env:
       - CGO_ENABLED=0
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    flags:
+      - -trimpath
     goos:
       - linux
       - darwin
@@ -40,7 +43,7 @@ changelog:
       - "^test:"
 release:
   github:
-    owner: vtarmo
+    owner: blastart-repo
     name: cephmgr
   # draft: true
   prerelease: auto
@@ -53,19 +56,19 @@ release:
 
   #   Those were the changes on {{ .Tag }}!
 
-# gomod:
-#   env:
-#     - GOPRIVATE=github.com/blastart-repo/pilvio-client-go
+gomod:
+  env:
+    - GOPRIVATE=github.com/blastart-repo/pilvio-client-go
 
 universal_binaries:
   - replace: true
 
 brews:
   - name: cephmgr
-    homepage: https://github.com/vtarmo/cephmgr
+    homepage: https://github.com/blastart-repo/cephmgr
     tap:
-      owner: vtarmo
+      owner: blastart-repo
       name: homebrew-tap
     commit_author:
       name: vtarmo
-      email: tarmo.katmuk@gmail.com
+      email: vta6722@gmail.com
