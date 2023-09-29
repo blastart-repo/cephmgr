@@ -10,7 +10,7 @@ import (
 
 // capsCmd represents the caps command
 var (
-	quotaCmd = &cobra.Command{
+	userQuotaCmd = &cobra.Command{
 		Use:   "quota",
 		Short: "User quota operations",
 		Long:  `User quota operations`,
@@ -18,7 +18,7 @@ var (
 			cmd.Help()
 		},
 	}
-	quotaGetCmd = &cobra.Command{
+	userQuotaGetCmd = &cobra.Command{
 		Use:   "get",
 		Short: "get user quotas",
 		Long:  `todo`,
@@ -33,7 +33,7 @@ var (
 			}
 		},
 	}
-	quotaSetCmd = &cobra.Command{
+	userQuotaSetCmd = &cobra.Command{
 		Use:   "set",
 		Short: "set user quotas",
 		Long:  `Set user quotas`,
@@ -68,15 +68,15 @@ var (
 )
 
 func init() {
-	userCmd.AddCommand(quotaCmd)
-	quotaCmd.AddCommand(quotaGetCmd)
-	quotaCmd.AddCommand(quotaSetCmd)
+	userCmd.AddCommand(userQuotaCmd)
+	userQuotaCmd.AddCommand(userQuotaGetCmd)
+	userQuotaCmd.AddCommand(userQuotaSetCmd)
 
-	// Add flags to quotaSetCmd
-	quotaSetCmd.Flags().Int64Var(&maxObjectsFlag, "max-objects", -1, "Max Objects Quota. Usage: --max-objects=<int>")
-	quotaSetCmd.Flags().Int64Var(&maxSizeFlag, "max-size", -1, "Max Size Quota (in bytes)")
-	quotaSetCmd.Flags().IntVar(&maxSizeKbFlag, "max-size-kb", 0, "Max Size KB Quota")
-	quotaSetCmd.Flags().BoolVar(&enabledFlag, "enabled", false, "Enable or disable quotas")
+	// Add flags to userQuotaSetCmd
+	userQuotaSetCmd.Flags().Int64Var(&maxObjectsFlag, "max-objects", -1, "Max Objects Quota. Usage: --max-objects=<int>")
+	userQuotaSetCmd.Flags().Int64Var(&maxSizeFlag, "max-size", -1, "Max Size Quota (in bytes)")
+	userQuotaSetCmd.Flags().IntVar(&maxSizeKbFlag, "max-size-kb", 0, "Max Size KB Quota")
+	userQuotaSetCmd.Flags().BoolVar(&enabledFlag, "enabled", false, "Enable or disable quotas")
 }
 
 func getUserQuotas(quotaSpec *QuotaSpec) error {
