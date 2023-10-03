@@ -37,10 +37,25 @@ var (
 				cmd.Help()
 				os.Exit(1)
 			}
-			err := getBucketInfo(*bucket)
-			if err != nil {
-				fmt.Println(err)
-				cmd.Help()
+			switch {
+			case bucketUsageInfo:
+				err := getBucketInfoUsage(*bucket)
+				if err != nil {
+					fmt.Println(err)
+					cmd.Help()
+				}
+			case bucketQuotaInfo:
+				err := getBucketQuotas(*bucket)
+				if err != nil {
+					fmt.Println(err)
+					cmd.Help()
+				}
+			default:
+				err := getBucketInfo(*bucket)
+				if err != nil {
+					fmt.Println(err)
+					cmd.Help()
+				}
 			}
 		},
 	}
@@ -49,6 +64,9 @@ var (
 func init() {
 	bucketCmd.AddCommand(listBucketsCmd)
 	bucketCmd.AddCommand(getBucketInfoCmd)
+	getBucketInfoCmd.PersistentFlags().BoolVarP(&bucketUsageInfo, "usage", "u", false, "Bucket usage")
+	getBucketInfoCmd.PersistentFlags().BoolVarP(&bucketQuotaInfo, "quota", "q", false, "Bucket quotas")
+
 }
 
 func listBuckets() error {
@@ -87,4 +105,30 @@ func getBucketInfo(bucket Bucket) error {
 	w.Flush()
 
 	return nil
+}
+
+func getBucketInfoUsage(bucket Bucket) error {
+	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
+	if err != nil {
+		return err
+	}
+
+	b, err := c.GetBucketInfo(context.Background(), admin.Bucket{Bucket: bucket.Bucket})
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Bucket: %s\n", b.Bucket)
+	fmt.Printf("Size : %d \n", getUint64Value(b.Usage.RgwMain.Size))
+	fmt.Printf("NumObjects : %d \n", getUint64Value(b.Usage.RgwMain.NumObjects))
+	fmt.Printf("SizeUtilized : %d \n", getUint64Value(b.Usage.RgwMain.SizeUtilized))
+	fmt.Printf("SizeActual : %d \n", getUint64Value(b.Usage.RgwMain.SizeActual))
+
+	return nil
+}
+
+func getUint64Value(ptr *uint64) uint64 {
+	if ptr != nil {
+		return *ptr
+	}
+	return 0
 }

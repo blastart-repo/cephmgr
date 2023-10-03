@@ -29,6 +29,17 @@ type Bucket struct {
 	Bucket      string    `json:"bucket" url:"bucket"`
 	Owner       string    `json:"owner"`
 	BucketQuota QuotaSpec `json:"bucket_quota"`
+	Usage       struct {
+		RgwMain struct {
+			Size           *uint64 `json:"size"`
+			SizeActual     *uint64 `json:"size_actual"`
+			SizeUtilized   *uint64 `json:"size_utilized"`
+			SizeKb         *uint64 `json:"size_kb"`
+			SizeKbActual   *uint64 `json:"size_kb_actual"`
+			SizeKbUtilized *uint64 `json:"size_kb_utilized"`
+			NumObjects     *uint64 `json:"num_objects"`
+		} `json:"rgw.main"`
+	}
 }
 
 type QuotaSpec struct {

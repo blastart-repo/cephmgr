@@ -43,7 +43,9 @@ Problems:
 
 
 * ```rgw bucket list``` -get the Bucket list
-* ```rgw bucket info <Bucket>``` get bucket info
+* ```rgw bucket info <Bucket> [flag]``` get bucket info
+    * ```--quota or -q``` get bucket quotas
+    * ```--usage or -u``` get bucket usage
 * ```rgw bucket delete <Bucket> [flags]```- Deletes only empty buckets
     * ```--populated``` deletes populated bucket
 * ```rgw bucket quota get <bucket>``` get bucket quota
