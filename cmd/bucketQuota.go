@@ -2,10 +2,14 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
+	"text/tabwriter"
 
 	"github.com/ceph/go-ceph/rgw/admin"
+	"github.com/docker/go-units"
 	"github.com/spf13/cobra"
 )
 
@@ -27,15 +31,10 @@ var (
 			bucket := &Bucket{
 				Bucket: args[0],
 			}
-			if bucket.Bucket == "" {
-				fmt.Printf("error: %s\n", errMissingBucketID)
-				cmd.Help()
-				os.Exit(1)
-			}
-			err := getBucketQuotas(*bucket)
+
+			err := getBucketQuotas(cmd, *bucket)
 			if err != nil {
-				fmt.Println(err)
-				cmd.Help()
+				NewResponse(cmd, false, "", err.Error())
 			}
 		},
 	}
@@ -54,22 +53,20 @@ var (
 			}
 
 			if cmd.Flags().Changed("max-size") {
-				quota.MaxSize = &maxSizeFlag
+				bytes, err := units.RAMInBytes(maxSizeFlag)
+				if err != nil {
+					fmt.Printf("Error parsing %s: %v\n", maxSizeFlag, err)
+
+				}
+				quota.MaxSize = &bytes
 			}
 
 			if cmd.Flags().Changed("enabled") {
 				quota.Enabled = &enabledFlag
 			}
 
-			if cmd.Flags().Changed("max-size-kb") {
-				quota.MaxSizeKb = &maxSizeKbFlag
-			}
-
-			err := setBucketQuotas(quota)
-			if err != nil {
-				fmt.Println(err)
-				cmd.Help()
-			}
+			response := setBucketQuotas(quota)
+			NewResponse(cmd, response.Success, response.Message, response.Error)
 		},
 	}
 )
@@ -79,14 +76,12 @@ func init() {
 	bucketQuotaCmd.AddCommand(bucketQuotaGetCmd)
 	bucketQuotaCmd.AddCommand(bucketQuotaSetCmd)
 
-	// Add flags to bucketQuotaSetCmd
 	bucketQuotaSetCmd.Flags().Int64Var(&maxObjectsFlag, "max-objects", -1, "Max Objects Quota. Usage: --max-objects=<int>")
-	bucketQuotaSetCmd.Flags().Int64Var(&maxSizeFlag, "max-size", -1, "Max Size Quota (in bytes)")
-	bucketQuotaSetCmd.Flags().IntVar(&maxSizeKbFlag, "max-size-kb", 0, "Max Size KB Quota")
+	bucketQuotaSetCmd.Flags().StringVar(&maxSizeFlag, "max-size", "", "Max Size Quota (in bytes)")
 	bucketQuotaSetCmd.Flags().BoolVar(&enabledFlag, "enabled", false, "Enable or disable quotas")
 }
 
-func getBucketQuotas(bucket Bucket) error {
+func getBucketQuotas(cmd *cobra.Command, bucket Bucket) error {
 
 	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
 	if err != nil {
@@ -97,39 +92,52 @@ func getBucketQuotas(bucket Bucket) error {
 	if err != nil {
 		return err
 	}
+	respQuota := ResponseQuota{
+		Bucket:     b.Bucket,
+		Enabled:    b.BucketQuota.Enabled,
+		MaxSize:    units.BytesSize(float64(*b.BucketQuota.MaxSize)),
+		MaxObjects: b.BucketQuota.MaxObjects,
+	}
 
-	fmt.Printf("Bucket: %s\n", b.Bucket)
-	fmt.Printf("Max Size : %d B\n", *b.BucketQuota.MaxSize)
-	fmt.Printf("Max Objects : %d\n", *b.BucketQuota.MaxObjects)
-	fmt.Printf("Max Size KB : %d KB\n", *b.BucketQuota.MaxSize)
-	fmt.Printf("Enabled: %t\n", *b.BucketQuota.Enabled)
+	switch {
+	case returnJSON:
+		uJSON, err := json.Marshal(respQuota)
+		if err != nil {
+			NewResponse(cmd, false, "", err.Error())
+		}
+		fmt.Println(string(uJSON))
+	default:
+		w := tabwriter.NewWriter(os.Stdout, 10, 1, 5, ' ', 0)
+		fs := "%s\t%v\t%s\t%t\n"
+		fmt.Fprintln(w, "Bucket\tMaxSize\tMaxObjects\tEnabled")
+		formattedMaxObjects := strconv.FormatInt(*b.BucketQuota.MaxObjects, 10)
+		fmt.Fprintf(w, fs, b.Bucket, units.BytesSize(float64(*b.BucketQuota.MaxSize)), formattedMaxObjects, *b.BucketQuota.Enabled)
+		w.Flush()
+	}
 
 	return nil
 }
 
-func setBucketQuotas(quotaSpec *QuotaSpec) error {
+func setBucketQuotas(quotaSpec *QuotaSpec) CLIResponse {
 	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
 	if err != nil {
-		return err
+		return NewCLIResponse(false, "", err.Error())
 	}
 
-	// Create an admin.QuotaSpec and populate it with values from quotaSpec
 	adminQuotaSpec := admin.QuotaSpec{
 		UID:        quotaSpec.UID,
 		Bucket:     quotaSpec.Bucket,
 		MaxObjects: quotaSpec.MaxObjects,
 		MaxSize:    quotaSpec.MaxSize,
 		Enabled:    quotaSpec.Enabled,
-		MaxSizeKb:  quotaSpec.MaxSizeKb,
 	}
 
 	// Set the user quota using the admin API
 	err = c.SetIndividualBucketQuota(context.Background(), adminQuotaSpec)
 	if err != nil {
-		return err
+		return NewCLIResponse(false, "", err.Error())
 	}
 
-	fmt.Printf("User: %s\n", quotaSpec.UID)
-	fmt.Println("Quota set successfully.")
-	return nil
+	successMessage := "Quota set successfully"
+	return NewCLIResponse(true, successMessage, "")
 }

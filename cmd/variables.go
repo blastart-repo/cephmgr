@@ -10,9 +10,10 @@ var (
 	userFullname    string
 	userID          string
 	maxObjectsFlag  int64
-	maxSizeFlag     int64
-	maxSizeKbFlag   int
+	maxSizeFlag     string
 	enabledFlag     bool
 	bucketUsageInfo bool
 	bucketQuotaInfo bool
+	returnJSON      bool
+	populatedFlag   bool
 )

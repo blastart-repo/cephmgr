@@ -2,13 +2,16 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"os"
+	"text/tabwriter"
 
 	"github.com/ceph/go-ceph/rgw/admin"
+	"github.com/docker/go-units"
 	"github.com/spf13/cobra"
 )
 
-// capsCmd represents the caps command
 var (
 	userQuotaCmd = &cobra.Command{
 		Use:   "quota",
@@ -47,15 +50,15 @@ var (
 			}
 
 			if cmd.Flags().Changed("max-size") {
-				quota.MaxSize = &maxSizeFlag
+				bytes, err := units.RAMInBytes(maxSizeFlag)
+				if err != nil {
+					fmt.Printf("Error parsing %s: %v\n", maxSizeFlag, err)
+				}
+				quota.MaxSize = &bytes
 			}
 
 			if cmd.Flags().Changed("enabled") {
 				quota.Enabled = &enabledFlag
-			}
-
-			if cmd.Flags().Changed("max-size-kb") {
-				quota.MaxSizeKb = &maxSizeKbFlag
 			}
 
 			err := setUserQuotas(quota)
@@ -68,19 +71,17 @@ var (
 )
 
 func init() {
+
 	userCmd.AddCommand(userQuotaCmd)
 	userQuotaCmd.AddCommand(userQuotaGetCmd)
 	userQuotaCmd.AddCommand(userQuotaSetCmd)
 
-	// Add flags to userQuotaSetCmd
 	userQuotaSetCmd.Flags().Int64Var(&maxObjectsFlag, "max-objects", -1, "Max Objects Quota. Usage: --max-objects=<int>")
-	userQuotaSetCmd.Flags().Int64Var(&maxSizeFlag, "max-size", -1, "Max Size Quota (in bytes)")
-	userQuotaSetCmd.Flags().IntVar(&maxSizeKbFlag, "max-size-kb", 0, "Max Size KB Quota")
+	userQuotaSetCmd.Flags().StringVar(&maxSizeFlag, "max-size", "", "Max Size Quota ")
 	userQuotaSetCmd.Flags().BoolVar(&enabledFlag, "enabled", false, "Enable or disable quotas")
 }
 
 func getUserQuotas(quotaSpec *QuotaSpec) error {
-
 	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
 	if err != nil {
 		return err
@@ -91,11 +92,28 @@ func getUserQuotas(quotaSpec *QuotaSpec) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("User: %s\n", quotaSpec.UID)
-	fmt.Printf("Max Size : %d B\n", *u.MaxSize)
-	fmt.Printf("Max Objects : %d\n", *u.MaxObjects)
-	fmt.Printf("Max Size KB : %d KB\n", *u.MaxSizeKb)
-	fmt.Printf("Enabled: %t\n", *u.Enabled)
+	respQuota := ResponseQuota{
+		UID:        quotaSpec.UID,
+		Bucket:     u.Bucket,
+		Enabled:    u.Enabled,
+		MaxSize:    units.BytesSize(float64(*u.MaxSize)),
+		MaxObjects: u.MaxObjects,
+	}
+
+	switch {
+	case returnJSON:
+		uJSON, err := json.Marshal(respQuota)
+		if err != nil {
+			return err
+		}
+		fmt.Println(string(uJSON))
+	default:
+		w := tabwriter.NewWriter(os.Stdout, 10, 1, 5, ' ', 0)
+		fs := "%s\t%s\t%v\t%v\n"
+		fmt.Fprintln(w, "UID\tMaxSize\tMaxObjects\tEnabled")
+		fmt.Fprintf(w, fs, quotaSpec.UID, units.BytesSize(float64(*u.MaxSize)), *u.MaxObjects, *u.Enabled)
+		w.Flush()
+	}
 	return nil
 }
 
@@ -105,22 +123,18 @@ func setUserQuotas(quotaSpec *QuotaSpec) error {
 		return err
 	}
 
-	// Create an admin.QuotaSpec and populate it with values from quotaSpec
 	adminQuotaSpec := admin.QuotaSpec{
 		UID:        quotaSpec.UID,
 		MaxObjects: quotaSpec.MaxObjects,
 		MaxSize:    quotaSpec.MaxSize,
 		Enabled:    quotaSpec.Enabled,
-		MaxSizeKb:  quotaSpec.MaxSizeKb,
 	}
 
-	// Set the user quota using the admin API
 	err = c.SetUserQuota(context.Background(), adminQuotaSpec)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("User: %s\n", quotaSpec.UID)
-	fmt.Println("Quota set successfully.")
+	fmt.Println("Quota set successfully")
 	return nil
 }

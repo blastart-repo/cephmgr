@@ -13,15 +13,16 @@ user create, delete
         * ```-e "email"``` - email
         * ```--caps "buckets=read"``` - add single user capability
         * ```--caps "buckets=*;users=read;zone=*"``` - add multiple user capabilities
-user info modify
+user modify
 * ```rgw user modify <UID> [FLAGS]```  - edit user fullname and email
     * ```-f "FullName"``` -user display name, optional
     * ```-e "email"``` - email, optional
     * Kas lisan siia max bucketid?
-    user key managment
+user key managment
 * ```rgw user keys delete <UID> <AccessKey>``` -delete user Keys
 * ```rgw user keys add <UID>``` - add new keys to user
 user caps
+* ```rgw user caps get <UID>``` - get user caps
 * ```rgw user caps add <uid> [flag]```
     * ```--caps "buckets=read"``` - add single user capability
     * ```--caps "buckets=*;users=read;zone=*"``` - add multiple user 
@@ -32,8 +33,8 @@ user quota
 * ```rgw user quota get <UID>``` - get user quotas
 * ```rgw user quota set <UID> [flag]``` - get user quotas
     * ```--max-objects=<int>``` user quota max objects
-    * ```--max-size=<int>```  user quota max size in bites
-    * ```--max-size-kb=<int>``` user quota max size in Kb
+    * ```--max-size=<string>```  user quota max size in bites
+        * example ```--max-size=2gb|2tb|459mb``` -units not case sensitive
     * ```--enabled=<bool>``` enable/disable user quotas
 ## Bucket
 ### RGW

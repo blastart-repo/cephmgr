@@ -45,9 +45,37 @@ type Bucket struct {
 type QuotaSpec struct {
 	UID        string `json:"user_id" url:"uid"`
 	Bucket     string `json:"bucket" url:"bucket"`
-	QuotaType  string `url:"quota-type"`
 	Enabled    *bool  `json:"enabled" url:"enabled"`
 	MaxSize    *int64 `json:"max_size" url:"max-size"`
 	MaxSizeKb  *int   `json:"max_size_kb" url:"max-size-kb"`
 	MaxObjects *int64 `json:"max_objects" url:"max-objects"`
+}
+
+type ResponseQuota struct {
+	UID        string `json:"user_id" url:"uid"`
+	Bucket     string `json:"bucket" url:"bucket"`
+	Enabled    *bool  `json:"enabled" url:"enabled"`
+	MaxSize    string `json:"max_size" url:"max-size"`
+	MaxObjects *int64 `json:"max_objects" url:"max-objects"`
+}
+
+type CLIResponse struct {
+	Success bool   `json:"success"`
+	Message string `json:"message,omitempty"`
+	Error   string `json:"error,omitempty"`
+}
+type StringSlice struct {
+	Buckets []string `json:"bucket-list"`
+}
+
+type BucketInfo struct {
+	ID     string `json:"id"`
+	Bucket string `json:"bucket" url:"bucket"`
+	Owner  string `json:"owner"`
+}
+
+type BucketInfoUsage struct {
+	Bucket     string  `json:"bucket" url:"bucket"`
+	Size       string  `json:"size"`
+	NumObjects *uint64 `json:"num_objects"`
 }

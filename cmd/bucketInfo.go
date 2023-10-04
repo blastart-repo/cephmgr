@@ -2,11 +2,13 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"text/tabwriter"
 
 	"github.com/ceph/go-ceph/rgw/admin"
+	"github.com/docker/go-units"
 	"github.com/spf13/cobra"
 )
 
@@ -16,10 +18,9 @@ var (
 		Short: "Get a list of buckets",
 		Long:  `get list of buckets.`,
 		Run: func(cmd *cobra.Command, _ []string) {
-			err := listBuckets()
+			err := listBuckets(cmd)
 			if err != nil {
-				fmt.Println(err)
-				cmd.Help()
+				NewResponse(cmd, false, "", err.Error())
 			}
 		},
 	}
@@ -39,19 +40,19 @@ var (
 			}
 			switch {
 			case bucketUsageInfo:
-				err := getBucketInfoUsage(*bucket)
+				err := getBucketInfoUsage(cmd, *bucket)
 				if err != nil {
 					fmt.Println(err)
 					cmd.Help()
 				}
 			case bucketQuotaInfo:
-				err := getBucketQuotas(*bucket)
+				err := getBucketQuotas(cmd, *bucket)
 				if err != nil {
 					fmt.Println(err)
 					cmd.Help()
 				}
 			default:
-				err := getBucketInfo(*bucket)
+				err := getBucketInfo(cmd, *bucket)
 				if err != nil {
 					fmt.Println(err)
 					cmd.Help()
@@ -69,7 +70,7 @@ func init() {
 
 }
 
-func listBuckets() error {
+func listBuckets(cmd *cobra.Command) error {
 	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
 	if err != nil {
 		return err
@@ -80,13 +81,25 @@ func listBuckets() error {
 		return err
 	}
 
-	for _, j := range buckets {
-		fmt.Println(j)
+	switch {
+	case returnJSON:
+		stringObject := StringSlice{
+			Buckets: buckets,
+		}
+		uJSON, err := json.Marshal(stringObject)
+		if err != nil {
+			NewResponse(cmd, false, "", err.Error())
+		}
+		fmt.Println(string(uJSON))
+	default:
+		for _, j := range buckets {
+			fmt.Println(j)
+		}
 	}
 	return nil
 }
 
-func getBucketInfo(bucket Bucket) error {
+func getBucketInfo(cmd *cobra.Command, bucket Bucket) error {
 	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
 	if err != nil {
 		return err
@@ -96,18 +109,31 @@ func getBucketInfo(bucket Bucket) error {
 	if err != nil {
 		return err
 	}
+	switch {
 
-	w := tabwriter.NewWriter(os.Stdout, 10, 1, 5, ' ', 0)
+	case returnJSON:
 
-	fs := "%s\t%s\t%s\n"
-	fmt.Fprintln(w, "ID\tBucket\tOwner")
-	fmt.Fprintf(w, fs, b.ID, b.Bucket, b.Owner)
-	w.Flush()
-
+		bucket := BucketInfo{
+			ID:     b.ID,
+			Bucket: b.Bucket,
+			Owner:  b.Owner,
+		}
+		uJSON, err := json.Marshal(bucket)
+		if err != nil {
+			NewResponse(cmd, false, "", err.Error())
+		}
+		fmt.Println(string(uJSON))
+	default:
+		w := tabwriter.NewWriter(os.Stdout, 10, 1, 5, ' ', 0)
+		fs := "%s\t%s\t%s\n"
+		fmt.Fprintln(w, "ID\tBucket\tOwner")
+		fmt.Fprintf(w, fs, b.ID, b.Bucket, b.Owner)
+		w.Flush()
+	}
 	return nil
 }
 
-func getBucketInfoUsage(bucket Bucket) error {
+func getBucketInfoUsage(cmd *cobra.Command, bucket Bucket) error {
 	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
 	if err != nil {
 		return err
@@ -117,18 +143,25 @@ func getBucketInfoUsage(bucket Bucket) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Bucket: %s\n", b.Bucket)
-	fmt.Printf("Size : %d \n", getUint64Value(b.Usage.RgwMain.Size))
-	fmt.Printf("NumObjects : %d \n", getUint64Value(b.Usage.RgwMain.NumObjects))
-	fmt.Printf("SizeUtilized : %d \n", getUint64Value(b.Usage.RgwMain.SizeUtilized))
-	fmt.Printf("SizeActual : %d \n", getUint64Value(b.Usage.RgwMain.SizeActual))
+	switch {
+	case returnJSON:
+		bucket := BucketInfoUsage{
+			Bucket:     b.Bucket,
+			Size:       units.BytesSize(float64(*b.Usage.RgwMain.Size)),
+			NumObjects: b.Usage.RgwMain.NumObjects,
+		}
+		uJSON, err := json.Marshal(bucket)
+		if err != nil {
+			NewResponse(cmd, false, "", err.Error())
+		}
+		fmt.Println(string(uJSON))
+	default:
+		w := tabwriter.NewWriter(os.Stdout, 10, 1, 5, ' ', 0)
+		fs := "%s\t%s\t%d\n"
+		fmt.Fprintln(w, "Bucket\tSize\tNumObjects")
+		fmt.Fprintf(w, fs, b.Bucket, units.BytesSize(float64(*b.Usage.RgwMain.Size)), int(*b.Usage.RgwMain.NumObjects))
+		w.Flush()
+	}
 
 	return nil
-}
-
-func getUint64Value(ptr *uint64) uint64 {
-	if ptr != nil {
-		return *ptr
-	}
-	return 0
 }

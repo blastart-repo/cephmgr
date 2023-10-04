@@ -40,9 +40,8 @@ var (
 		Args: cobra.ExactArgs(1), // Require exactly 1 argument (UID)
 		Run: func(cmd *cobra.Command, args []string) {
 			user := &User{
-				ID:          args[0], // Use the first argument as the UID
-				DisplayName: userFullname,
-				Email:       userEmail,
+				ID: args[0], // Use the first argument as the UID
+
 			}
 			err := getUser(*user)
 			if err != nil {

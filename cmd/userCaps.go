@@ -25,6 +25,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"text/tabwriter"
 
 	"github.com/ceph/go-ceph/rgw/admin"
 	"github.com/spf13/cobra"
@@ -40,6 +41,24 @@ var (
 			cmd.Help()
 		},
 	}
+	getCapsCmd = &cobra.Command{
+		Use:   "get",
+		Short: "Get user caps",
+		Long: `Get user caps
+		`,
+		Args: cobra.ExactArgs(1), // Require exactly 1 argument (UID)
+		Run: func(cmd *cobra.Command, args []string) {
+			user := &User{
+				ID: args[0], // Use the first argument as the UID
+
+			}
+			err := getUserCaps(*user)
+			if err != nil {
+				fmt.Println(err)
+				cmd.Help()
+			}
+		},
+	}
 	addCapsCmd = &cobra.Command{
 		Use:   "add",
 		Short: "Add user capabilities",
@@ -50,10 +69,10 @@ var (
 	Add multiple capabilities to user:
 	
 	--caps "buckets=*;users=read"`,
-		Args: cobra.ExactArgs(1), // Require exactly 1 argument (UID)
+		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			user := &User{
-				ID:       args[0], // Use the first argument as the UID
+				ID:       args[0],
 				UserCaps: userCaps,
 			}
 			if user.ID == "" || user.UserCaps == "" {
@@ -105,6 +124,7 @@ func init() {
 	userCmd.AddCommand(capsCmd)
 	capsCmd.AddCommand(addCapsCmd)
 	capsCmd.AddCommand(removeCapsCmd)
+	capsCmd.AddCommand(getCapsCmd)
 	userCmd.MarkFlagRequired("user")
 	addCapsCmd.MarkFlagRequired("caps")
 	removeCapsCmd.MarkFlagRequired("caps")
@@ -139,5 +159,24 @@ func removeUserCaps(user User) error {
 
 	fmt.Printf("User ID: %s\n", user.ID)
 	fmt.Println(userCaps)
+	return nil
+}
+func getUserCaps(user User) error {
+	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
+	if err != nil {
+		return err
+	}
+
+	u, err := c.GetUser(context.Background(), admin.User{ID: user.ID})
+
+	if err != nil {
+		return err
+	}
+
+	w := tabwriter.NewWriter(os.Stdout, 10, 1, 5, ' ', 0)
+	fs := "%s\t%s\n"
+	fmt.Fprintln(w, "UID\tCaps")
+	fmt.Fprintf(w, fs, u.ID, u.Caps)
+	w.Flush()
 	return nil
 }

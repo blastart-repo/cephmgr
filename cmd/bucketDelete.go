@@ -14,16 +14,8 @@ var (
 		Short: "Delete empty buckets",
 		Long:  "Delete an empty bucket by name",
 		Args:  cobra.ExactArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
-			populated, _ := cmd.Flags().GetBool("populated")
-			err := deleteBucket(args[0], populated)
-			if err != nil {
-				fmt.Println(err)
-				cmd.Help()
-			}
-		},
+		Run:   runDeleteBucketCmd,
 	}
-	populatedFlag bool
 )
 
 func init() {
@@ -31,16 +23,19 @@ func init() {
 	deleteBucketsCmd.Flags().BoolVar(&populatedFlag, "populated", false, "Delete populated buckets")
 }
 
-func deleteBucket(bucketName string, populated bool) error {
+func runDeleteBucketCmd(cmd *cobra.Command, args []string) {
+	populated, _ := cmd.Flags().GetBool("populated")
+	response := deleteBucket(args[0], populated)
+	NewResponse(cmd, response.Success, response.Message, response.Error)
+}
+
+func deleteBucket(bucketName string, populated bool) CLIResponse {
 	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
 	if err != nil {
-		return err
+		return NewCLIResponse(false, "", err.Error())
 	}
 
-	// Create a pointer to a bool and set its value based on the populated flag
 	purgeObject := &populated
-
-	// Create an admin.Bucket with PurgeObject set to the pointer to the bool
 	bucket := admin.Bucket{
 		Bucket:      bucketName,
 		PurgeObject: purgeObject,
@@ -48,9 +43,9 @@ func deleteBucket(bucketName string, populated bool) error {
 
 	err = c.RemoveBucket(context.Background(), bucket)
 	if err != nil {
-		return err
+		return NewCLIResponse(false, "", err.Error())
 	}
 
-	fmt.Printf("Bucket '%s' deleted successfully.\n", bucketName)
-	return nil
+	successMessage := fmt.Sprintf("Bucket '%s' deleted successfully.", bucketName)
+	return NewCLIResponse(true, successMessage, "")
 }
