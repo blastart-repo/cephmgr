@@ -79,3 +79,7 @@ type BucketInfoUsage struct {
 	Size       string  `json:"size"`
 	NumObjects *uint64 `json:"num_objects"`
 }
+type UserCapsResponse struct {
+	UID  string        `json:"user_id" url:"uid"`
+	Caps []UserCapSpec `json:"caps"`
+}

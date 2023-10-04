@@ -23,6 +23,7 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"text/tabwriter"
@@ -52,10 +53,9 @@ var (
 				ID: args[0], // Use the first argument as the UID
 
 			}
-			err := getUserCaps(*user)
+			err := getUserCaps(cmd, *user)
 			if err != nil {
-				fmt.Println(err)
-				cmd.Help()
+				NewResponse(cmd, false, "", err.Error())
 			}
 		},
 	}
@@ -80,13 +80,8 @@ var (
 				os.Exit(1)
 			}
 
-			err := addUserCaps(*user)
-			if err != nil {
-				fmt.Println(err)
-				cmd.Help()
-			} else {
-				fmt.Println("New user capability added.")
-			}
+			resp := addUserCaps(*user)
+			NewResponse(cmd, resp.Success, resp.Message, resp.Error)
 		},
 	}
 	removeCapsCmd = &cobra.Command{
@@ -111,11 +106,9 @@ var (
 				os.Exit(1)
 			}
 
-			err := removeUserCaps(*user)
-			if err != nil {
-				fmt.Println(err)
-				cmd.Help()
-			}
+			resp := removeUserCaps(*user)
+			NewResponse(cmd, resp.Success, resp.Message, resp.Error)
+
 		},
 	}
 )
@@ -130,38 +123,38 @@ func init() {
 	removeCapsCmd.MarkFlagRequired("caps")
 }
 
-func addUserCaps(user User) error {
+func addUserCaps(user User) CLIResponse {
 	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
 	if err != nil {
-		return err
+		return NewCLIResponse(false, "", err.Error())
 	}
 
 	_, err = c.AddUserCap(context.Background(), user.ID, user.UserCaps)
 
 	if err != nil {
-		return err
+		return NewCLIResponse(false, "", err.Error())
 	}
 
-	return nil
+	return NewCLIResponse(true, "New user capability added.", "")
 }
 
-func removeUserCaps(user User) error {
+func removeUserCaps(user User) CLIResponse {
 	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
 	if err != nil {
-		return err
+		return NewCLIResponse(false, "", err.Error())
 	}
 
 	userCaps, err := c.RemoveUserCap(context.Background(), user.ID, user.UserCaps)
 
 	if err != nil {
-		return err
+		return NewCLIResponse(false, "", err.Error())
 	}
 
-	fmt.Printf("User ID: %s\n", user.ID)
-	fmt.Println(userCaps)
-	return nil
+	res := fmt.Sprintf("User ID: %s capabilitys removed. Remaining caps: %s", user.ID, userCaps)
+
+	return NewCLIResponse(true, res, "")
 }
-func getUserCaps(user User) error {
+func getUserCaps(cmd *cobra.Command, user User) error {
 	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
 	if err != nil {
 		return err
@@ -172,11 +165,32 @@ func getUserCaps(user User) error {
 	if err != nil {
 		return err
 	}
+	switch {
+	case returnJSON:
+		var convertedCaps []UserCapSpec
 
-	w := tabwriter.NewWriter(os.Stdout, 10, 1, 5, ' ', 0)
-	fs := "%s\t%s\n"
-	fmt.Fprintln(w, "UID\tCaps")
-	fmt.Fprintf(w, fs, u.ID, u.Caps)
-	w.Flush()
+		for _, cap := range u.Caps {
+			convertedCap := UserCapSpec{
+				Type: cap.Type,
+				Perm: cap.Perm,
+			}
+			convertedCaps = append(convertedCaps, convertedCap)
+		}
+		caps := UserCapsResponse{
+			UID:  u.ID,
+			Caps: convertedCaps,
+		}
+		uJSON, err := json.Marshal(caps)
+		if err != nil {
+			NewResponse(cmd, false, "", err.Error())
+		}
+		fmt.Println(string(uJSON))
+	default:
+		w := tabwriter.NewWriter(os.Stdout, 10, 1, 5, ' ', 0)
+		fs := "%s\t%s\n"
+		fmt.Fprintln(w, "UID\tCaps")
+		fmt.Fprintf(w, fs, u.ID, u.Caps)
+		w.Flush()
+	}
 	return nil
 }

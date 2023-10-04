@@ -55,7 +55,7 @@ var (
 			if cmd.Flags().Changed("max-size") {
 				bytes, err := units.RAMInBytes(maxSizeFlag)
 				if err != nil {
-					fmt.Printf("Error parsing %s: %v\n", maxSizeFlag, err)
+					NewResponse(cmd, false, "", err.Error())
 
 				}
 				quota.MaxSize = &bytes

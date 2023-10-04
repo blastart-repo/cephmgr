@@ -33,29 +33,26 @@ var (
 			bucket := &Bucket{
 				Bucket: args[0],
 			}
-			if bucket.Bucket == "" {
+			/*if bucket.Bucket == "" {
 				fmt.Printf("error: %s\n", errMissingBucketID)
 				cmd.Help()
 				os.Exit(1)
-			}
+			}*/
 			switch {
 			case bucketUsageInfo:
 				err := getBucketInfoUsage(cmd, *bucket)
 				if err != nil {
-					fmt.Println(err)
-					cmd.Help()
+					NewResponse(cmd, false, "", err.Error())
 				}
 			case bucketQuotaInfo:
 				err := getBucketQuotas(cmd, *bucket)
 				if err != nil {
-					fmt.Println(err)
-					cmd.Help()
+					NewResponse(cmd, false, "", err.Error())
 				}
 			default:
 				err := getBucketInfo(cmd, *bucket)
 				if err != nil {
-					fmt.Println(err)
-					cmd.Help()
+					NewResponse(cmd, false, "", err.Error())
 				}
 			}
 		},
@@ -110,9 +107,7 @@ func getBucketInfo(cmd *cobra.Command, bucket Bucket) error {
 		return err
 	}
 	switch {
-
 	case returnJSON:
-
 		bucket := BucketInfo{
 			ID:     b.ID,
 			Bucket: b.Bucket,
