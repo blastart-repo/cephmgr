@@ -1,4 +1,6 @@
 ## User
+
+flag ```--json``` short ````-j`` prints all responses in json
 ### RGW
 user info
 * ```rgw user list``` - get use list

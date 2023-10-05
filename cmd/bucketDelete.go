@@ -32,7 +32,7 @@ func runDeleteBucketCmd(cmd *cobra.Command, args []string) {
 func deleteBucket(bucketName string, populated bool) CLIResponse {
 	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
 	if err != nil {
-		return NewCLIResponse(false, "", err.Error())
+		return NewResponseStruct(false, "", err.Error())
 	}
 
 	purgeObject := &populated
@@ -43,9 +43,9 @@ func deleteBucket(bucketName string, populated bool) CLIResponse {
 
 	err = c.RemoveBucket(context.Background(), bucket)
 	if err != nil {
-		return NewCLIResponse(false, "", err.Error())
+		return NewResponseStruct(false, "", err.Error())
 	}
 
 	successMessage := fmt.Sprintf("Bucket '%s' deleted successfully.", bucketName)
-	return NewCLIResponse(true, successMessage, "")
+	return NewResponseStruct(true, successMessage, "")
 }

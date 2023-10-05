@@ -18,10 +18,8 @@ var (
 		Short: "Get a list of buckets",
 		Long:  `get list of buckets.`,
 		Run: func(cmd *cobra.Command, _ []string) {
-			err := listBuckets(cmd)
-			if err != nil {
-				NewResponse(cmd, false, "", err.Error())
-			}
+			listBuckets(cmd)
+
 		},
 	}
 	getBucketInfoCmd = &cobra.Command{
@@ -40,20 +38,11 @@ var (
 			}*/
 			switch {
 			case bucketUsageInfo:
-				err := getBucketInfoUsage(cmd, *bucket)
-				if err != nil {
-					NewResponse(cmd, false, "", err.Error())
-				}
+				getBucketInfoUsage(cmd, *bucket)
 			case bucketQuotaInfo:
-				err := getBucketQuotas(cmd, *bucket)
-				if err != nil {
-					NewResponse(cmd, false, "", err.Error())
-				}
+				getBucketQuotas(cmd, *bucket)
 			default:
-				err := getBucketInfo(cmd, *bucket)
-				if err != nil {
-					NewResponse(cmd, false, "", err.Error())
-				}
+				getBucketInfo(cmd, *bucket)
 			}
 		},
 	}
@@ -67,23 +56,20 @@ func init() {
 
 }
 
-func listBuckets(cmd *cobra.Command) error {
+func listBuckets(cmd *cobra.Command) {
 	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
 	if err != nil {
-		return err
+		NewResponse(cmd, false, "", err.Error())
 	}
 	buckets, err := c.ListBuckets(context.Background())
-
 	if err != nil {
-		return err
+		NewResponse(cmd, false, "", err.Error())
 	}
 
 	switch {
 	case returnJSON:
-		stringObject := StringSlice{
-			Buckets: buckets,
-		}
-		uJSON, err := json.Marshal(stringObject)
+
+		uJSON, err := json.Marshal(&buckets)
 		if err != nil {
 			NewResponse(cmd, false, "", err.Error())
 		}
@@ -93,18 +79,17 @@ func listBuckets(cmd *cobra.Command) error {
 			fmt.Println(j)
 		}
 	}
-	return nil
 }
 
-func getBucketInfo(cmd *cobra.Command, bucket Bucket) error {
+func getBucketInfo(cmd *cobra.Command, bucket Bucket) {
 	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
 	if err != nil {
-		return err
+		NewResponse(cmd, false, "", err.Error())
 	}
 
 	b, err := c.GetBucketInfo(context.Background(), admin.Bucket{Bucket: bucket.Bucket})
 	if err != nil {
-		return err
+		NewResponse(cmd, false, "", err.Error())
 	}
 	switch {
 	case returnJSON:
@@ -125,18 +110,18 @@ func getBucketInfo(cmd *cobra.Command, bucket Bucket) error {
 		fmt.Fprintf(w, fs, b.ID, b.Bucket, b.Owner)
 		w.Flush()
 	}
-	return nil
+
 }
 
-func getBucketInfoUsage(cmd *cobra.Command, bucket Bucket) error {
+func getBucketInfoUsage(cmd *cobra.Command, bucket Bucket) {
 	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
 	if err != nil {
-		return err
+		NewResponse(cmd, false, "", err.Error())
 	}
 
 	b, err := c.GetBucketInfo(context.Background(), admin.Bucket{Bucket: bucket.Bucket})
 	if err != nil {
-		return err
+		NewResponse(cmd, false, "", err.Error())
 	}
 	switch {
 	case returnJSON:
@@ -157,6 +142,4 @@ func getBucketInfoUsage(cmd *cobra.Command, bucket Bucket) error {
 		fmt.Fprintf(w, fs, b.Bucket, units.BytesSize(float64(*b.Usage.RgwMain.Size)), int(*b.Usage.RgwMain.NumObjects))
 		w.Flush()
 	}
-
-	return nil
 }

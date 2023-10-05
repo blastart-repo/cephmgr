@@ -64,9 +64,6 @@ type CLIResponse struct {
 	Message string `json:"message,omitempty"`
 	Error   string `json:"error,omitempty"`
 }
-type StringSlice struct {
-	Buckets []string `json:"bucket-list"`
-}
 
 type BucketInfo struct {
 	ID     string `json:"id"`
@@ -82,4 +79,10 @@ type BucketInfoUsage struct {
 type UserCapsResponse struct {
 	UID  string        `json:"user_id" url:"uid"`
 	Caps []UserCapSpec `json:"caps"`
+}
+type UserInfoResponse struct {
+	UID         string        `json:"user_id" url:"uid"`
+	DisplayName string        `json:"display_name" url:"display-name"`
+	Email       string        `json:"email" url:"email"`
+	Caps        []UserCapSpec `json:"caps"`
 }

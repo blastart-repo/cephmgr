@@ -27,11 +27,8 @@ You can also provide capabilities for user with --caps flag:
 				UserCaps:    userCaps,
 			}
 
-			err := createUser(*user)
-			if err != nil {
-				fmt.Println(err)
-				cmd.Help()
-			}
+			resp := createUser(*user)
+			NewResponse(cmd, resp.Success, resp.Message, resp.Error)
 
 		},
 	}
@@ -45,16 +42,16 @@ func init() {
 
 }
 
-func createUser(user User) error {
+func createUser(user User) CLIResponse {
 
 	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
 	if err != nil {
-		return err
+		return NewResponseStruct(false, "", err.Error())
 	}
 	users, err := c.CreateUser(context.Background(), admin.User{ID: user.ID, DisplayName: user.DisplayName, UserCaps: user.UserCaps})
 
 	if err != nil {
-		return err
+		return NewResponseStruct(false, "", err.Error())
 	}
 
 	buser, _ := json.Marshal(users)
@@ -62,12 +59,5 @@ func createUser(user User) error {
 	var userdata User
 	_ = json.Unmarshal([]byte(buser), &userdata)
 
-	fmt.Printf("Created user for %s\n", userdata.DisplayName)
-
-	for _, ad := range userdata.Keys {
-		fmt.Println("ID:", ad.User)
-		fmt.Println("accesskey:", ad.AccessKey)
-		fmt.Println("secret:", ad.SecretKey)
-	}
-	return nil
+	return NewResponseStruct(true, fmt.Sprintf("Created user for %s", userdata.DisplayName), "")
 }

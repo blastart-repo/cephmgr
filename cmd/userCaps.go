@@ -51,12 +51,8 @@ var (
 		Run: func(cmd *cobra.Command, args []string) {
 			user := &User{
 				ID: args[0], // Use the first argument as the UID
-
 			}
-			err := getUserCaps(cmd, *user)
-			if err != nil {
-				NewResponse(cmd, false, "", err.Error())
-			}
+			getUserCaps(cmd, *user)
 		},
 	}
 	addCapsCmd = &cobra.Command{
@@ -126,60 +122,49 @@ func init() {
 func addUserCaps(user User) CLIResponse {
 	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
 	if err != nil {
-		return NewCLIResponse(false, "", err.Error())
+		return NewResponseStruct(false, "", err.Error())
 	}
 
 	_, err = c.AddUserCap(context.Background(), user.ID, user.UserCaps)
 
 	if err != nil {
-		return NewCLIResponse(false, "", err.Error())
+		return NewResponseStruct(false, "", err.Error())
 	}
 
-	return NewCLIResponse(true, "New user capability added.", "")
+	return NewResponseStruct(true, "New user capability added.", "")
 }
 
 func removeUserCaps(user User) CLIResponse {
 	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
 	if err != nil {
-		return NewCLIResponse(false, "", err.Error())
+		return NewResponseStruct(false, "", err.Error())
 	}
 
 	userCaps, err := c.RemoveUserCap(context.Background(), user.ID, user.UserCaps)
 
 	if err != nil {
-		return NewCLIResponse(false, "", err.Error())
+		return NewResponseStruct(false, "", err.Error())
 	}
 
 	res := fmt.Sprintf("User ID: %s capabilitys removed. Remaining caps: %s", user.ID, userCaps)
 
-	return NewCLIResponse(true, res, "")
+	return NewResponseStruct(true, res, "")
 }
-func getUserCaps(cmd *cobra.Command, user User) error {
+func getUserCaps(cmd *cobra.Command, user User) {
 	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
 	if err != nil {
-		return err
+		NewResponse(cmd, false, "", err.Error())
 	}
 
 	u, err := c.GetUser(context.Background(), admin.User{ID: user.ID})
 
 	if err != nil {
-		return err
+		NewResponse(cmd, false, "", err.Error())
+		return
 	}
 	switch {
 	case returnJSON:
-		var convertedCaps []UserCapSpec
-
-		for _, cap := range u.Caps {
-			convertedCap := UserCapSpec{
-				Type: cap.Type,
-				Perm: cap.Perm,
-			}
-			convertedCaps = append(convertedCaps, convertedCap)
-		}
-		caps := UserCapsResponse{
-			UID:  u.ID,
-			Caps: convertedCaps,
-		}
+		caps := convertUserCapSpec(u.Caps)
 		uJSON, err := json.Marshal(caps)
 		if err != nil {
 			NewResponse(cmd, false, "", err.Error())
@@ -192,5 +177,4 @@ func getUserCaps(cmd *cobra.Command, user User) error {
 		fmt.Fprintf(w, fs, u.ID, u.Caps)
 		w.Flush()
 	}
-	return nil
 }

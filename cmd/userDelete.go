@@ -20,13 +20,8 @@ var (
 				ID: args[0], // Use the first argument as the UID
 
 			}
-			err := deleteUser(*user)
-			if err != nil {
-				fmt.Println(err)
-				cmd.Help()
-			} else {
-				fmt.Printf("Deleted user %s\n", user.ID)
-			}
+			resp := deleteUser(*user)
+			NewResponse(cmd, resp.Success, resp.Message, resp.Error)
 
 		},
 	}
@@ -39,17 +34,17 @@ func init() {
 
 }
 
-func deleteUser(user User) error {
+func deleteUser(user User) CLIResponse {
 
 	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
 	if err != nil {
-		return err
+		return NewResponseStruct(false, "", err.Error())
 	}
 
 	err = c.RemoveUser(context.Background(), admin.User{ID: user.ID})
 
 	if err != nil {
-		return err
+		return NewResponseStruct(false, "", err.Error())
 	}
-	return nil
+	return NewResponseStruct(true, fmt.Sprintf("User %s deleted", user.ID), "")
 }

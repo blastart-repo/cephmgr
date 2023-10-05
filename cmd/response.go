@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewCLIResponse(success bool, message, err string) CLIResponse {
+func NewResponseStruct(success bool, message, err string) CLIResponse {
 	return CLIResponse{
 		Success: success,
 		Message: message,

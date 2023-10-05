@@ -31,17 +31,14 @@ var (
 			bucket := &Bucket{
 				Bucket: args[0],
 			}
-
-			err := getBucketQuotas(cmd, *bucket)
-			if err != nil {
-				NewResponse(cmd, false, "", err.Error())
-			}
+			getBucketQuotas(cmd, *bucket)
 		},
 	}
 	bucketQuotaSetCmd = &cobra.Command{
 		Use:   "set",
 		Short: "set bucket quotas",
 		Long:  `Set bucket quotas`,
+		Args:  cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
 			quota := &QuotaSpec{
 				UID:    args[0],
@@ -56,7 +53,7 @@ var (
 				bytes, err := units.RAMInBytes(maxSizeFlag)
 				if err != nil {
 					NewResponse(cmd, false, "", err.Error())
-
+					return
 				}
 				quota.MaxSize = &bytes
 			}
@@ -81,16 +78,16 @@ func init() {
 	bucketQuotaSetCmd.Flags().BoolVar(&enabledFlag, "enabled", false, "Enable or disable quotas")
 }
 
-func getBucketQuotas(cmd *cobra.Command, bucket Bucket) error {
+func getBucketQuotas(cmd *cobra.Command, bucket Bucket) {
 
 	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
 	if err != nil {
-		return err
+		NewResponse(cmd, false, "", err.Error())
 	}
 
 	b, err := c.GetBucketInfo(context.Background(), admin.Bucket{Bucket: bucket.Bucket})
 	if err != nil {
-		return err
+		NewResponse(cmd, false, "", err.Error())
 	}
 	respQuota := ResponseQuota{
 		Bucket:     b.Bucket,
@@ -115,13 +112,12 @@ func getBucketQuotas(cmd *cobra.Command, bucket Bucket) error {
 		w.Flush()
 	}
 
-	return nil
 }
 
 func setBucketQuotas(quotaSpec *QuotaSpec) CLIResponse {
 	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
 	if err != nil {
-		return NewCLIResponse(false, "", err.Error())
+		return NewResponseStruct(false, "", err.Error())
 	}
 
 	adminQuotaSpec := admin.QuotaSpec{
@@ -131,13 +127,10 @@ func setBucketQuotas(quotaSpec *QuotaSpec) CLIResponse {
 		MaxSize:    quotaSpec.MaxSize,
 		Enabled:    quotaSpec.Enabled,
 	}
-
-	// Set the user quota using the admin API
 	err = c.SetIndividualBucketQuota(context.Background(), adminQuotaSpec)
 	if err != nil {
-		return NewCLIResponse(false, "", err.Error())
+		return NewResponseStruct(false, "", err.Error())
 	}
-
 	successMessage := "Quota set successfully"
-	return NewCLIResponse(true, successMessage, "")
+	return NewResponseStruct(true, successMessage, "")
 }

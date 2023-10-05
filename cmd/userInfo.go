@@ -23,6 +23,7 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"text/tabwriter"
@@ -37,17 +38,12 @@ var (
 		Short: "Get user info",
 		Long: `Get user info
 		`,
-		Args: cobra.ExactArgs(1), // Require exactly 1 argument (UID)
+		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			user := &User{
-				ID: args[0], // Use the first argument as the UID
-
+				ID: args[0],
 			}
-			err := getUser(*user)
-			if err != nil {
-				fmt.Println(err)
-				cmd.Help()
-			}
+			getUser(cmd, *user)
 		},
 	}
 	listCmd = &cobra.Command{
@@ -55,11 +51,8 @@ var (
 		Short: "Get a list of users",
 		Long:  `get list of users from the cluster.`,
 		Run: func(cmd *cobra.Command, _ []string) {
-			err := listUsers()
-			if err != nil {
-				fmt.Println(err)
-				cmd.Help()
-			}
+			listUsers(cmd)
+
 		},
 	}
 )
@@ -71,42 +64,62 @@ func init() {
 
 }
 
-func getUser(user User) error {
+func getUser(cmd *cobra.Command, user User) {
 	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
 	if err != nil {
-		return err
+		NewResponse(cmd, false, "", err.Error())
 	}
 
 	u, err := c.GetUser(context.Background(), admin.User{ID: user.ID})
-
 	if err != nil {
-		return err
+		NewResponse(cmd, false, "", err.Error())
+		return
+	}
+	switch {
+	case returnJSON:
+		caps := convertUserCapSpec(u.Caps)
+		respStruct := UserInfoResponse{
+			UID:         u.ID,
+			DisplayName: u.DisplayName,
+			Email:       u.Email,
+			Caps:        caps,
+		}
+		uJSON, err := json.Marshal(respStruct)
+		if err != nil {
+			NewResponse(cmd, false, "", err.Error())
+		}
+		fmt.Println(string(uJSON))
+	default:
+		w := tabwriter.NewWriter(os.Stdout, 10, 1, 5, ' ', 0)
+		fs := "%s\t%s\t%s\t%v\n"
+		fmt.Fprintln(w, "UID\tFull Name\tEmail\tCaps")
+		fmt.Fprintf(w, fs, u.ID, u.DisplayName, u.Email, u.Caps)
+		w.Flush()
 	}
 
-	w := tabwriter.NewWriter(os.Stdout, 10, 1, 5, ' ', 0)
-	fs := "%s\t%s\t%s\t%v\n"
-	fmt.Fprintln(w, "UID\tFull Name\tEmail\tCaps")
-	fmt.Fprintf(w, fs, u.ID, u.DisplayName, u.Email, u.Caps)
-	w.Flush()
-	return nil
 }
 
-func listUsers() error {
+func listUsers(cmd *cobra.Command) {
 	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
 	if err != nil {
-		fmt.Println("Failed to create admin client:", err)
-		return err
+		NewResponse(cmd, false, "", err.Error())
 	}
 
 	users, err := c.GetUsers(context.Background())
 	if err != nil {
-		fmt.Println("Failed to get user data:", err)
-		return err
+		NewResponse(cmd, false, "", err.Error())
 	}
+	switch {
+	case returnJSON:
 
-	for _, j := range *users {
-		fmt.Println(j)
+		uJSON, err := json.Marshal(users)
+		if err != nil {
+			NewResponse(cmd, false, "", err.Error())
+		}
+		fmt.Println(string(uJSON))
+	default:
+		for _, j := range *users {
+			fmt.Println(j)
+		}
 	}
-
-	return nil
 }

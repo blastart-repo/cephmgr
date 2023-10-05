@@ -2,10 +2,6 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
-	"os"
-	"text/tabwriter"
 
 	"github.com/ceph/go-ceph/rgw/admin"
 	"github.com/spf13/cobra"
@@ -17,6 +13,7 @@ var (
 		Use:   "modify",
 		Short: "Modify user",
 		Long:  `Modify user`,
+		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 
 			user := &User{
@@ -24,13 +21,8 @@ var (
 				DisplayName: userFullname,
 				Email:       userEmail,
 			}
-
-			err := modifyUser(*user)
-			if err != nil {
-				fmt.Println(err)
-				cmd.Help()
-			}
-
+			resp := modifyUser(*user)
+			NewResponse(cmd, resp.Success, resp.Message, resp.Error)
 		},
 	}
 )
@@ -40,30 +32,16 @@ func init() {
 
 }
 
-func modifyUser(user User) error {
+func modifyUser(user User) CLIResponse {
 
 	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
 	if err != nil {
-		return err
+		return NewResponseStruct(false, "", err.Error())
 	}
-	resp, err := c.ModifyUser(context.Background(), admin.User{ID: user.ID, DisplayName: user.DisplayName, Email: user.Email})
-
+	_, err = c.ModifyUser(context.Background(), admin.User{ID: user.ID, DisplayName: user.DisplayName, Email: user.Email})
 	if err != nil {
-		return err
+		return NewResponseStruct(false, "", err.Error())
 	}
 
-	buser, _ := json.Marshal(resp)
-
-	var userdata User
-	_ = json.Unmarshal([]byte(buser), &userdata)
-
-	fmt.Println("User info modifyed")
-
-	w := tabwriter.NewWriter(os.Stdout, 10, 1, 5, ' ', 0)
-
-	fs := "%s\t%s\t%s\n"
-	fmt.Fprintln(w, "UID\tFull Name\tEmail")
-	fmt.Fprintf(w, fs, userdata.ID, userdata.DisplayName, userdata.Email)
-	w.Flush()
-	return nil
+	return NewResponseStruct(true, "User info modifyed", "")
 }

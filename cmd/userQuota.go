@@ -29,11 +29,8 @@ var (
 			quota := &QuotaSpec{
 				UID: args[0],
 			}
-			err := getUserQuotas(quota)
-			if err != nil {
-				fmt.Println(err)
-				cmd.Help()
-			}
+			getUserQuotas(cmd, quota)
+
 		},
 	}
 	userQuotaSetCmd = &cobra.Command{
@@ -52,7 +49,8 @@ var (
 			if cmd.Flags().Changed("max-size") {
 				bytes, err := units.RAMInBytes(maxSizeFlag)
 				if err != nil {
-					fmt.Printf("Error parsing %s: %v\n", maxSizeFlag, err)
+					NewResponse(cmd, false, "", err.Error())
+					return
 				}
 				quota.MaxSize = &bytes
 			}
@@ -61,11 +59,8 @@ var (
 				quota.Enabled = &enabledFlag
 			}
 
-			err := setUserQuotas(quota)
-			if err != nil {
-				fmt.Println(err)
-				cmd.Help()
-			}
+			resp := setUserQuotas(quota)
+			NewResponse(cmd, resp.Success, resp.Message, resp.Error)
 		},
 	}
 )
@@ -81,16 +76,16 @@ func init() {
 	userQuotaSetCmd.Flags().BoolVar(&enabledFlag, "enabled", false, "Enable or disable quotas")
 }
 
-func getUserQuotas(quotaSpec *QuotaSpec) error {
+func getUserQuotas(cmd *cobra.Command, quotaSpec *QuotaSpec) {
 	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
 	if err != nil {
-		return err
+		NewResponse(cmd, false, "", err.Error())
 	}
 
 	u, err := c.GetUserQuota(context.Background(), admin.QuotaSpec{UID: quotaSpec.UID})
 
 	if err != nil {
-		return err
+		NewResponse(cmd, false, "", err.Error())
 	}
 	respQuota := ResponseQuota{
 		UID:        quotaSpec.UID,
@@ -104,7 +99,7 @@ func getUserQuotas(quotaSpec *QuotaSpec) error {
 	case returnJSON:
 		uJSON, err := json.Marshal(respQuota)
 		if err != nil {
-			return err
+			NewResponse(cmd, false, "", err.Error())
 		}
 		fmt.Println(string(uJSON))
 	default:
@@ -114,13 +109,13 @@ func getUserQuotas(quotaSpec *QuotaSpec) error {
 		fmt.Fprintf(w, fs, quotaSpec.UID, units.BytesSize(float64(*u.MaxSize)), *u.MaxObjects, *u.Enabled)
 		w.Flush()
 	}
-	return nil
+
 }
 
-func setUserQuotas(quotaSpec *QuotaSpec) error {
+func setUserQuotas(quotaSpec *QuotaSpec) CLIResponse {
 	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
 	if err != nil {
-		return err
+		return NewResponseStruct(false, "", err.Error())
 	}
 
 	adminQuotaSpec := admin.QuotaSpec{
@@ -132,9 +127,9 @@ func setUserQuotas(quotaSpec *QuotaSpec) error {
 
 	err = c.SetUserQuota(context.Background(), adminQuotaSpec)
 	if err != nil {
-		return err
+		return NewResponseStruct(false, "", err.Error())
 	}
 
-	fmt.Println("Quota set successfully")
-	return nil
+	successMessage := "Quota set successfully"
+	return NewResponseStruct(true, successMessage, "")
 }
