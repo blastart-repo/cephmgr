@@ -14,10 +14,7 @@ var (
 	createCmd = &cobra.Command{
 		Use:   "create",
 		Short: "Create new user",
-		Long: `Create new user.
-You can also provide capabilities for user with --caps flag:
-
---caps "buckets=*"`,
+		Long:  `Create new user.`,
 		Run: func(cmd *cobra.Command, _ []string) {
 
 			user := &User{
@@ -37,9 +34,8 @@ You can also provide capabilities for user with --caps flag:
 func init() {
 	userCmd.AddCommand(createCmd)
 	createCmd.PersistentFlags().StringVarP(&userID, "user", "u", "", "Ceph user ID")
-
 	createCmd.MarkFlagRequired("user")
-
+	createCmd.SetHelpTemplate(userCreateTemplate())
 }
 
 func createUser(user User) CLIResponse {

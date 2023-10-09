@@ -14,23 +14,25 @@ var (
 		Use:   "delete",
 		Short: "Delete user",
 		Long:  `Delete user`,
-		Args:  cobra.ExactArgs(1), // Require exactly 1 argument (UID)
+		Args:  cobra.MaximumNArgs(1), // Accept 0 or 1 argument (UID)
 		Run: func(cmd *cobra.Command, args []string) {
+			var userID string
+			if len(args) > 0 {
+				userID = args[0] // Use the first argument as the UID
+			}
 			user := &User{
-				ID: args[0], // Use the first argument as the UID
-
+				ID: userID,
 			}
 			resp := deleteUser(*user)
 			NewResponse(cmd, resp.Success, resp.Message, resp.Error)
-
 		},
 	}
 )
 
 func init() {
 	userCmd.AddCommand(deleteCmd)
-
 	deleteCmd.MarkFlagRequired("user")
+	deleteCmd.SetHelpTemplate(userDeleteTemplate())
 
 }
 

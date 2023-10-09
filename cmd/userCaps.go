@@ -45,12 +45,15 @@ var (
 	getCapsCmd = &cobra.Command{
 		Use:   "get",
 		Short: "Get user caps",
-		Long: `Get user caps
-		`,
-		Args: cobra.ExactArgs(1), // Require exactly 1 argument (UID)
+		Long:  `Get user caps`,
+		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			var userID string
+			if len(args) > 0 {
+				userID = args[0]
+			}
 			user := &User{
-				ID: args[0], // Use the first argument as the UID
+				ID: userID,
 			}
 			getUserCaps(cmd, *user)
 		},
@@ -58,43 +61,36 @@ var (
 	addCapsCmd = &cobra.Command{
 		Use:   "add",
 		Short: "Add user capabilities",
-		Long: `Add user capabilities in form 
-	
-	"users|buckets=*|read|write|read,write"
-	
-	Add multiple capabilities to user:
-	
-	--caps "buckets=*;users=read"`,
-		Args: cobra.ExactArgs(1),
+		Long:  `Add user capabilities `,
 		Run: func(cmd *cobra.Command, args []string) {
-			user := &User{
-				ID:       args[0],
-				UserCaps: userCaps,
+			var user User
+			if len(args) > 0 {
+				user = User{
+					ID:       args[0],
+					UserCaps: userCaps,
+				}
 			}
+
 			if user.ID == "" || user.UserCaps == "" {
 				cmd.Help()
 				os.Exit(1)
 			}
 
-			resp := addUserCaps(*user)
+			resp := addUserCaps(user)
 			NewResponse(cmd, resp.Success, resp.Message, resp.Error)
 		},
 	}
 	removeCapsCmd = &cobra.Command{
 		Use:   "remove",
 		Short: "Remove user capabilities",
-		Long: `Remove user capabilities in form 
-	
-	"users|buckets=*|read|write|read,write"
-	
-	Remove multiple capabilities to user:
-	
-	--caps "buckets=*;users=read"`,
-		Args: cobra.ExactArgs(1), // Require exactly 1 argument (UID)
+		Long:  `Remove user capabilities`,
 		Run: func(cmd *cobra.Command, args []string) {
-			user := &User{
-				ID:       args[0], // Use the first argument as the UID
-				UserCaps: userCaps,
+			var user User
+			if len(args) > 0 {
+				user = User{
+					ID:       args[0],
+					UserCaps: userCaps,
+				}
 			}
 
 			if user.ID == "" || user.UserCaps == "" {
@@ -102,9 +98,8 @@ var (
 				os.Exit(1)
 			}
 
-			resp := removeUserCaps(*user)
+			resp := removeUserCaps(user)
 			NewResponse(cmd, resp.Success, resp.Message, resp.Error)
-
 		},
 	}
 )
@@ -117,6 +112,9 @@ func init() {
 	userCmd.MarkFlagRequired("user")
 	addCapsCmd.MarkFlagRequired("caps")
 	removeCapsCmd.MarkFlagRequired("caps")
+	getCapsCmd.SetHelpTemplate(userGetCapsHelpTemplate())
+	addCapsCmd.SetHelpTemplate(userAddCapsHelpTemplate())
+	removeCapsCmd.SetHelpTemplate(userRemoveCapsHelpTemplate())
 }
 
 func addUserCaps(user User) CLIResponse {

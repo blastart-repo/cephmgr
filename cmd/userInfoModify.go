@@ -13,14 +13,21 @@ var (
 		Use:   "modify",
 		Short: "Modify user",
 		Long:  `Modify user`,
-		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-
-			user := &User{
-				ID:          args[0],
-				DisplayName: userFullname,
-				Email:       userEmail,
+			var user *User
+			if len(args) > 0 {
+				user = &User{
+					ID:          args[0],
+					DisplayName: userFullname,
+					Email:       userEmail,
+				}
+			} else {
+				cmd.Help() // Show custom help when no argument is provided
+				return
 			}
+
+			// Your modification logic here
+
 			resp := modifyUser(*user)
 			NewResponse(cmd, resp.Success, resp.Message, resp.Error)
 		},
@@ -29,6 +36,7 @@ var (
 
 func init() {
 	userCmd.AddCommand(modifyCmd)
+	modifyCmd.SetHelpTemplate(userModifyTemplate())
 
 }
 

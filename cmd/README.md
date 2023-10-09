@@ -3,11 +3,11 @@
 flag ```--json``` short ````-j`` prints all responses in json
 ### RGW
 user info
-* ```rgw user list``` - get use list
-* ```rgw user get <UID>``` - get user info
+* ```cephmgr rgw user list``` - get use list
+* ```cephmgr rgw user get <UID>``` - get user info
 user create, delete
-* ```rgw user delete <UID> ``` - delete user
-* ```rgw user create [FLAGS]```
+* ```cephmgr rgw user delete <UID> ``` - delete user
+* ```cephmgr rgw user create [FLAGS]```
     * Required flags
         * ```-u "uid"``` -user ID, 
         * ```-f "FullName"``` -user display name
@@ -16,24 +16,24 @@ user create, delete
         * ```--caps "buckets=read"``` - add single user capability
         * ```--caps "buckets=*;users=read;zone=*"``` - add multiple user capabilities
 user modify
-* ```rgw user modify <UID> [FLAGS]```  - edit user fullname and email
+* ```cephmgr rgw user modify <UID> [FLAGS]```  - edit user fullname and email
     * ```-f "FullName"``` -user display name, optional
     * ```-e "email"``` - email, optional
     * Kas lisan siia max bucketid?
 user key managment
-* ```rgw user keys delete <UID> <AccessKey>``` -delete user Keys
-* ```rgw user keys add <UID>``` - add new keys to user
+* ```cephmgr rgw user keys delete <UID> <AccessKey>``` -delete user Keys
+* ```cephmgr rgw user keys add <UID>``` - add new keys to user
 user caps
-* ```rgw user caps get <UID>``` - get user caps
-* ```rgw user caps add <uid> [flag]```
+* ```cephmgr rgw user caps get <UID>``` - get user caps
+* ```cephmgr rgw user caps add <uid> [flag]```
     * ```--caps "buckets=read"``` - add single user capability
     * ```--caps "buckets=*;users=read;zone=*"``` - add multiple user 
-* ```rgw user caps remove <uid> [flag]```
+* ```cephmgr rgw user caps remove <uid> [flag]```
     * ```--caps "buckets=read"``` - remove single user capability
     * ```--caps "buckets=*;users=read;zone=*"``` - remove multiple user 
 user quota
-* ```rgw user quota get <UID>``` - get user quotas
-* ```rgw user quota set <UID> [flag]``` - get user quotas
+* ```cephmgr rgw user quota get <UID>``` - get user quotas
+* ```cephmgr rgw user quota set <UID> [flag]``` - get user quotas
     * ```--max-objects=<int>``` user quota max objects
     * ```--max-size=<string>```  user quota max size in bites
         * example ```--max-size=2gb|2tb|459mb``` -units not case sensitive

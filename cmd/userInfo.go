@@ -36,9 +36,8 @@ var (
 	getuserCmd = &cobra.Command{
 		Use:   "get",
 		Short: "Get user info",
-		Long: `Get user info
-		`,
-		Args: cobra.ExactArgs(1),
+		Long:  `Get user info`,
+		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			user := &User{
 				ID: args[0],
@@ -58,10 +57,11 @@ var (
 )
 
 func init() {
-
 	userCmd.AddCommand(getuserCmd)
-	userCmd.AddCommand(listCmd)
+	getuserCmd.SetHelpTemplate(getUserHelpTemplate())
 
+	userCmd.AddCommand(listCmd)
+	listCmd.SetHelpTemplate(listUsersHelpTemplate())
 }
 
 func getUser(cmd *cobra.Command, user User) {
