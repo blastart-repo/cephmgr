@@ -21,6 +21,8 @@ var (
 func init() {
 	bucketCmd.AddCommand(deleteBucketsCmd)
 	deleteBucketsCmd.Flags().BoolVar(&populatedFlag, "populated", false, "Delete populated buckets")
+	deleteBucketsCmd.SetHelpTemplate(bucketDeleteTemplate())
+	deleteBucketsCmd.SetUsageTemplate(bucketDeleteTemplate())
 }
 
 func runDeleteBucketCmd(cmd *cobra.Command, args []string) {

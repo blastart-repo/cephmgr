@@ -112,9 +112,9 @@ func init() {
 	userCmd.MarkFlagRequired("user")
 	addCapsCmd.MarkFlagRequired("caps")
 	removeCapsCmd.MarkFlagRequired("caps")
-	getCapsCmd.SetHelpTemplate(userGetCapsHelpTemplate())
-	addCapsCmd.SetHelpTemplate(userAddCapsHelpTemplate())
-	removeCapsCmd.SetHelpTemplate(userRemoveCapsHelpTemplate())
+	getCapsCmd.SetHelpTemplate(userGetCapsTemplate())
+	addCapsCmd.SetHelpTemplate(userAddCapsTemplate())
+	removeCapsCmd.SetHelpTemplate(userRemoveCapsTemplate())
 }
 
 func addUserCaps(user User) CLIResponse {

@@ -21,7 +21,7 @@ var (
 		Use:   "remove",
 		Short: "Remove user keys",
 		Long:  `Remove user keys`,
-		Args:  cobra.ExactArgs(2), // Require exactly 2 arguments (UID and AccessKey)
+		Args:  cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
 			uid := args[0]
 			accessKey := args[1]
@@ -45,6 +45,11 @@ var (
 )
 
 func init() {
+	keysCmd.SetHelpTemplate(userKeysTemplate())
+	removeKeyCmd.SetHelpTemplate(userRemoveKeyTemplate())
+	removeKeyCmd.SetUsageTemplate(userRemoveKeyTemplate())
+	addKeyCmd.SetHelpTemplate(userAddKeyTemplate())
+	addKeyCmd.SetUsageTemplate(userAddKeyTemplate())
 	userCmd.AddCommand(keysCmd)
 	keysCmd.AddCommand(removeKeyCmd)
 	keysCmd.AddCommand(addKeyCmd)
@@ -71,8 +76,6 @@ func addUserKey(uid string) CLIResponse {
 	if err != nil {
 		return NewResponseStruct(false, "", err.Error())
 	}
-
-	// Create a pointer to a boolean with the value true
 	generateKey := true
 
 	_, err = c.CreateKey(context.Background(), admin.UserKeySpec{UID: uid, KeyType: "s3", GenerateKey: &generateKey})

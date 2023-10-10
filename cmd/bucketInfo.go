@@ -31,11 +31,7 @@ var (
 			bucket := &Bucket{
 				Bucket: args[0],
 			}
-			/*if bucket.Bucket == "" {
-				fmt.Printf("error: %s\n", errMissingBucketID)
-				cmd.Help()
-				os.Exit(1)
-			}*/
+
 			switch {
 			case bucketUsageInfo:
 				getBucketInfoUsage(cmd, *bucket)
@@ -53,7 +49,10 @@ func init() {
 	bucketCmd.AddCommand(getBucketInfoCmd)
 	getBucketInfoCmd.PersistentFlags().BoolVarP(&bucketUsageInfo, "usage", "u", false, "Bucket usage")
 	getBucketInfoCmd.PersistentFlags().BoolVarP(&bucketQuotaInfo, "quota", "q", false, "Bucket quotas")
-
+	listBucketsCmd.SetHelpTemplate(bucketListTemplate())
+	getBucketInfoCmd.SetHelpTemplate(bucketInfoTemplate())
+	listBucketsCmd.SetUsageTemplate(bucketListTemplate())
+	getBucketInfoCmd.SetUsageTemplate(bucketInfoTemplate())
 }
 
 func listBuckets(cmd *cobra.Command) {

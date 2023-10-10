@@ -59,9 +59,9 @@ var (
 func init() {
 	userCmd.AddCommand(getuserCmd)
 	getuserCmd.SetHelpTemplate(getUserHelpTemplate())
-
+	getuserCmd.SetUsageTemplate(getUserHelpTemplate())
 	userCmd.AddCommand(listCmd)
-	listCmd.SetHelpTemplate(listUsersHelpTemplate())
+	listCmd.SetHelpTemplate(listUsersTemplate())
 }
 
 func getUser(cmd *cobra.Command, user User) {

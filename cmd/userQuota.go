@@ -25,7 +25,13 @@ var (
 		Use:   "get",
 		Short: "get user quotas",
 		Long:  `todo`,
+		Args:  cobra.ExactArgs(1), // Require exactly 1 argument (UID)
 		Run: func(cmd *cobra.Command, args []string) {
+			if len(args) < 1 {
+				NewResponse(cmd, false, "", "UID is required")
+				return
+			}
+
 			quota := &QuotaSpec{
 				UID: args[0],
 			}
@@ -37,7 +43,13 @@ var (
 		Use:   "set",
 		Short: "set user quotas",
 		Long:  `Set user quotas`,
+		Args:  cobra.ExactArgs(1), // Require exactly 1 argument (UID)
 		Run: func(cmd *cobra.Command, args []string) {
+			if len(args) < 1 {
+				NewResponse(cmd, false, "", "UID is required")
+				return
+			}
+
 			quota := &QuotaSpec{
 				UID: args[0],
 			}
@@ -70,7 +82,10 @@ func init() {
 	userCmd.AddCommand(userQuotaCmd)
 	userQuotaCmd.AddCommand(userQuotaGetCmd)
 	userQuotaCmd.AddCommand(userQuotaSetCmd)
-
+	userQuotaSetCmd.SetHelpTemplate(userQuotaSetTemplate())
+	userQuotaSetCmd.SetUsageTemplate(userQuotaSetTemplate())
+	userQuotaGetCmd.SetHelpTemplate(userQuotaGetTemplate())
+	userQuotaGetCmd.SetUsageTemplate(userQuotaGetTemplate())
 	userQuotaSetCmd.Flags().Int64Var(&maxObjectsFlag, "max-objects", -1, "Max Objects Quota. Usage: --max-objects=<int>")
 	userQuotaSetCmd.Flags().StringVar(&maxSizeFlag, "max-size", "", "Max Size Quota ")
 	userQuotaSetCmd.Flags().BoolVar(&enabledFlag, "enabled", false, "Enable or disable quotas")

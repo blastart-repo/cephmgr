@@ -76,6 +76,10 @@ func init() {
 	bucketQuotaSetCmd.Flags().Int64Var(&maxObjectsFlag, "max-objects", -1, "Max Objects Quota. Usage: --max-objects=<int>")
 	bucketQuotaSetCmd.Flags().StringVar(&maxSizeFlag, "max-size", "", "Max Size Quota (in bytes)")
 	bucketQuotaSetCmd.Flags().BoolVar(&enabledFlag, "enabled", false, "Enable or disable quotas")
+	bucketQuotaGetCmd.SetHelpTemplate(bucketQuotaGetTemplate())
+	bucketQuotaSetCmd.SetHelpTemplate(bucketQuotaSetTemplate())
+	bucketQuotaGetCmd.SetUsageTemplate(bucketQuotaGetTemplate())
+	bucketQuotaSetCmd.SetUsageTemplate(bucketQuotaSetTemplate())
 }
 
 func getBucketQuotas(cmd *cobra.Command, bucket Bucket) {

@@ -22,11 +22,9 @@ var (
 					Email:       userEmail,
 				}
 			} else {
-				cmd.Help() // Show custom help when no argument is provided
+				cmd.Help()
 				return
 			}
-
-			// Your modification logic here
 
 			resp := modifyUser(*user)
 			NewResponse(cmd, resp.Success, resp.Message, resp.Error)
