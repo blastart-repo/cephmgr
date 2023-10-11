@@ -40,9 +40,7 @@ user quota
     * ```--enabled=<bool>``` enable/disable user quotas
 ## Bucket
 ### RGW
-Problems:
-* rgw ei lase bucketit lisada
-* bucketi muutmine?
+
 
 
 * ```rgw bucket list``` -get the Bucket list

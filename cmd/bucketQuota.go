@@ -123,13 +123,14 @@ func setBucketQuotas(quotaSpec *QuotaSpec) CLIResponse {
 	if err != nil {
 		return NewResponseStruct(false, "", err.Error())
 	}
-
+	valueKb := int(bytesToKB(*quotaSpec.MaxSize))
 	adminQuotaSpec := admin.QuotaSpec{
 		UID:        quotaSpec.UID,
 		Bucket:     quotaSpec.Bucket,
 		MaxObjects: quotaSpec.MaxObjects,
 		MaxSize:    quotaSpec.MaxSize,
 		Enabled:    quotaSpec.Enabled,
+		MaxSizeKb:  &valueKb,
 	}
 	err = c.SetIndividualBucketQuota(context.Background(), adminQuotaSpec)
 	if err != nil {
