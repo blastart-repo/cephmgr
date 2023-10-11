@@ -1,2 +1,20 @@
-- craete automated build
-- added windows build
+
+## Version 0.2.0 (Release Date: 11.10.2023)
+
+## New
+* Flag ```--json or -j``` - returns all responses as json
+* ```user modify ```- change the user's full name and email
+* ```user keys``` - add and delete user keys
+* ```user quota``` - get, set and remove user quotas
+* ```bucket delete``` - deletes empty buckets
+    * flag: ```--populated``` deletes populated bucket
+* ```bucket quota``` - get and set bucket quotas
+## Fixed
+
+## Changed
+
+* ```user caps ``` - added capability removal
+* ```bucket info``` -  added two new flags:
+    * ```--quota or -q``` - get bucket quotas
+    * ```--usage or -u``` - get bucket usage
+

@@ -30,14 +30,14 @@ var rgwCmd = &cobra.Command{
 	Use:   "rgw",
 	Short: "rgw module",
 	Long:  `A Ceph rgw module`,
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(cmd *cobra.Command, _ []string) {
 		cmd.Help()
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(rgwCmd)
-
+	rgwCmd.PersistentFlags().BoolVarP(&returnJSON, "json", "j", false, "Return values as json")
 	// rgwCmd.PersistentFlags().StringVarP(&cephHost, "ceph", "c", "", "Ceph host name with scheme")
 	// rgwCmd.PersistentFlags().StringVarP(&cephAccessKey, "accesskey", "k", "", "Ceph access key")
 	// rgwCmd.PersistentFlags().StringVarP(&cephAccessSecret, "accesssecret", "s", "", "Ceph access secret")
