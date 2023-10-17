@@ -26,7 +26,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"text/tabwriter"
 
 	"github.com/ceph/go-ceph/rgw/admin"
 	"github.com/spf13/cobra"
@@ -155,11 +154,15 @@ func getUserCaps(cmd *cobra.Command, user User) {
 	}
 
 	u, err := c.GetUser(context.Background(), admin.User{ID: user.ID})
-
 	if err != nil {
 		NewResponse(cmd, false, "", err.Error())
 		return
 	}
+
+	header := "UID\tCaps"
+	dataFormat := "%s\t%s"
+	data := []interface{}{u.ID, u.Caps}
+
 	switch {
 	case returnJSON:
 		caps := convertUserCapSpec(u.Caps)
@@ -169,10 +172,6 @@ func getUserCaps(cmd *cobra.Command, user User) {
 		}
 		fmt.Println(string(uJSON))
 	default:
-		w := tabwriter.NewWriter(os.Stdout, 10, 1, 5, ' ', 0)
-		fs := "%s\t%s\n"
-		fmt.Fprintln(w, "UID\tCaps")
-		fmt.Fprintf(w, fs, u.ID, u.Caps)
-		w.Flush()
+		printTabularData(header, dataFormat, data...)
 	}
 }
