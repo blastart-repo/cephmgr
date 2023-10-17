@@ -62,7 +62,6 @@ Temporary Items
 *.icloud
 
 ### VisualStudioCode ###
-.idea/*
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
@@ -93,3 +92,4 @@ Temporary Items
 .ignores/
 dist/
 cephmgr-s3.coop.yaml
+.idea/
