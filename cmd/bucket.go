@@ -14,7 +14,7 @@ var (
 		Short: "Bucket related commands",
 		Long:  `Bucket related commands`,
 		Run: func(cmd *cobra.Command, _ []string) {
-			cmd.Help()
+			_ = cmd.Help()
 		},
 	}
 )

@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/ceph/go-ceph/rgw/admin"
@@ -44,16 +43,11 @@ func createUser(user User) CLIResponse {
 	if err != nil {
 		return NewResponseStruct(false, "", err.Error())
 	}
-	users, err := c.CreateUser(context.Background(), admin.User{ID: user.ID, DisplayName: user.DisplayName, UserCaps: user.UserCaps})
+	_, err = c.CreateUser(context.Background(), admin.User{ID: user.ID, DisplayName: user.DisplayName, UserCaps: user.UserCaps})
 
 	if err != nil {
 		return NewResponseStruct(false, "", err.Error())
 	}
 
-	buser, _ := json.Marshal(users)
-
-	var userdata User
-	_ = json.Unmarshal([]byte(buser), &userdata)
-
-	return NewResponseStruct(true, fmt.Sprintf("Created user for %s", userdata.DisplayName), "")
+	return NewResponseStruct(true, fmt.Sprintf("Created user for %s", user.DisplayName), "")
 }

@@ -31,7 +31,7 @@ import (
 )
 
 var (
-	getUserCmd = &cobra.Command{
+	getuserCmd = &cobra.Command{
 		Use:   "get",
 		Short: "Get user info",
 		Long:  `Get user info`,
@@ -55,9 +55,9 @@ var (
 )
 
 func init() {
-	userCmd.AddCommand(getUserCmd)
-	getUserCmd.SetHelpTemplate(getUserHelpTemplate())
-	getUserCmd.SetUsageTemplate(getUserHelpTemplate())
+	userCmd.AddCommand(getuserCmd)
+	getuserCmd.SetHelpTemplate(getUserHelpTemplate())
+	getuserCmd.SetUsageTemplate(getUserHelpTemplate())
 	userCmd.AddCommand(listCmd)
 	listCmd.SetHelpTemplate(listUsersTemplate())
 }
