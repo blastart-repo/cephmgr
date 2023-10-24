@@ -61,5 +61,14 @@ user quota
 ### RGW
 
 
-* ```rgw cluster default set <cluster>```
-* ```rgw cluster default get```
+* ```rgw cluster add``` Add new cluster
+  * ```--name``` or ```-n```
+  * ```--access_key``` or ```-k```
+  * ```--access_secret``` or ```-s```
+  * ```--endpoint_url``` or ```-e```
+* ```rgw cluster get_active``` Get default active cluster info
+* ```rgw cluster list``` Get a list of clusters
+* ```rgw cluster remove``` Removes cluster
+  * ```--name``` or ```-n```
+* ```rgw cluster set_active``` Set default active cluster
+  * ```--name``` or ```-n```
