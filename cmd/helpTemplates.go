@@ -219,3 +219,64 @@ Flags:
   -h, --help            help for set
 `
 }
+
+func clusterListTemplate() string {
+	return `
+Usage: cephmgr rgw cluster list [FLAGS]
+Example: cephmgr rgw cluster list 
+
+Flags:
+  -j, --json            Return values as json
+  -h, --help            help for list
+`
+}
+
+func clusterGetActiveTemplate() string {
+	return `
+Usage: cephmgr rgw cluster get_active [FLAGS]
+Example: cephmgr rgw cluster get_active --json
+
+Flags:
+  -j, --json            Return values as json
+  -h, --help            help for list
+`
+}
+
+func clusterSetActiveTemplate() string {
+	return `
+Usage: cephmgr rgw cluster set_active [FLAGS]
+Example: cephmgr rgw cluster set_active -n=cluster1
+
+Flags:
+  -n, --name            Cluster name (required)
+  -j, --json            Return values as json
+  -h, --help            help for list
+`
+}
+
+func clusterAddNewTemplate() string {
+	return `
+Usage: cephmgr rgw cluster add [FLAGS]
+Example: cephmgr rgw cluster add -n=cluster4 -k=A574AGHBCNA66 -s=FHJA67820FHASS73HHFA9 -e=https://cluster.url.here --json
+
+Flags:
+  -n, --name            Cluster name (required)
+  -k, --access_key      Cluster access key (required)
+  -s, --access_secret   Cluster access secret (required)
+  -e, --endpoint_url    Cluster endpoint URL with scheme (required)
+  -j, --json            Return values as json
+  -h, --help            help for list
+`
+}
+
+func clusterRemoveTemplate() string {
+	return `
+Usage: cephmgr rgw cluster remove [FLAGS]
+Example: cephmgr rgw cluster remove -n=cluster2
+
+Flags:
+  -n, --name            Cluster name (required)
+  -j, --json            Return values as json
+  -h, --help            help for list
+`
+}

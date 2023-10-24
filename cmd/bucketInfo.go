@@ -18,8 +18,10 @@ var (
 		Short: "Get a list of buckets",
 		Long:  `get list of buckets.`,
 		Run: func(cmd *cobra.Command, _ []string) {
+			if cmd.PersistentFlags().Changed("cluster") {
+				overrideActiveCluster(clusterOverride)
+			}
 			listBuckets(cmd)
-
 		},
 	}
 	getBucketInfoCmd = &cobra.Command{
@@ -28,6 +30,9 @@ var (
 		Long:  `Get bucket details`,
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			if cmd.PersistentFlags().Changed("cluster") {
+				overrideActiveCluster(clusterOverride)
+			}
 			bucket := &Bucket{
 				Bucket: args[0],
 			}
@@ -56,7 +61,7 @@ func init() {
 }
 
 func listBuckets(cmd *cobra.Command) {
-	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
+	c, err := admin.New(activeCluster.EndpointURL, activeCluster.AccessKey, activeCluster.AccessSecret, nil)
 	if err != nil {
 		NewResponse(cmd, false, "", err.Error())
 	}
@@ -81,7 +86,7 @@ func listBuckets(cmd *cobra.Command) {
 }
 
 func getBucketInfo(cmd *cobra.Command, bucket Bucket) {
-	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
+	c, err := admin.New(activeCluster.EndpointURL, activeCluster.AccessKey, activeCluster.AccessSecret, nil)
 	if err != nil {
 		NewResponse(cmd, false, "", err.Error())
 	}
@@ -113,7 +118,7 @@ func getBucketInfo(cmd *cobra.Command, bucket Bucket) {
 }
 
 func getBucketInfoUsage(cmd *cobra.Command, bucket Bucket) {
-	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
+	c, err := admin.New(activeCluster.EndpointURL, activeCluster.AccessKey, activeCluster.AccessSecret, nil)
 	if err != nil {
 		NewResponse(cmd, false, "", err.Error())
 	}

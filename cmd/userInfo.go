@@ -39,6 +39,9 @@ var (
 		Long:  `Get user info`,
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			if cmd.PersistentFlags().Changed("cluster") {
+				overrideActiveCluster(clusterOverride)
+			}
 			user := &User{
 				ID: args[0],
 			}
@@ -50,6 +53,9 @@ var (
 		Short: "Get a list of users",
 		Long:  `get list of users from the cluster.`,
 		Run: func(cmd *cobra.Command, _ []string) {
+			if cmd.PersistentFlags().Changed("cluster") {
+				overrideActiveCluster(clusterOverride)
+			}
 			listUsers(cmd)
 
 		},
@@ -65,7 +71,7 @@ func init() {
 }
 
 func getUser(cmd *cobra.Command, user User) {
-	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
+	c, err := admin.New(activeCluster.EndpointURL, activeCluster.AccessKey, activeCluster.AccessSecret, nil)
 	if err != nil {
 		NewResponse(cmd, false, "", err.Error())
 	}
@@ -100,7 +106,7 @@ func getUser(cmd *cobra.Command, user User) {
 }
 
 func listUsers(cmd *cobra.Command) {
-	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
+	c, err := admin.New(activeCluster.EndpointURL, activeCluster.AccessKey, activeCluster.AccessSecret, nil)
 	if err != nil {
 		NewResponse(cmd, false, "", err.Error())
 	}

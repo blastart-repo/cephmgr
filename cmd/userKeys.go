@@ -23,6 +23,9 @@ var (
 		Long:  `Remove user keys`,
 		Args:  cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
+			if cmd.PersistentFlags().Changed("cluster") {
+				overrideActiveCluster(clusterOverride)
+			}
 			uid := args[0]
 			accessKey := args[1]
 
@@ -36,6 +39,9 @@ var (
 		Long:  `ToDo`,
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			if cmd.PersistentFlags().Changed("cluster") {
+				overrideActiveCluster(clusterOverride)
+			}
 			uid := args[0]
 
 			r := addUserKey(uid)
@@ -56,7 +62,7 @@ func init() {
 }
 
 func removeUserKeys(uid string, accessKey string) CLIResponse {
-	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
+	c, err := admin.New(activeCluster.EndpointURL, activeCluster.AccessKey, activeCluster.AccessSecret, nil)
 	if err != nil {
 		return NewResponseStruct(false, "", err.Error())
 	}
@@ -72,7 +78,7 @@ func removeUserKeys(uid string, accessKey string) CLIResponse {
 }
 
 func addUserKey(uid string) CLIResponse {
-	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
+	c, err := admin.New(activeCluster.EndpointURL, activeCluster.AccessKey, activeCluster.AccessSecret, nil)
 	if err != nil {
 		return NewResponseStruct(false, "", err.Error())
 	}

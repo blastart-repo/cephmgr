@@ -27,6 +27,9 @@ var (
 		Long:  `todo`,
 		Args:  cobra.ExactArgs(1), // Require exactly 1 argument (UID)
 		Run: func(cmd *cobra.Command, args []string) {
+			if cmd.PersistentFlags().Changed("cluster") {
+				overrideActiveCluster(clusterOverride)
+			}
 			if len(args) < 1 {
 				NewResponse(cmd, false, "", "UID is required")
 				return
@@ -45,6 +48,9 @@ var (
 		Long:  `Set user quotas`,
 		Args:  cobra.ExactArgs(1), // Require exactly 1 argument (UID)
 		Run: func(cmd *cobra.Command, args []string) {
+			if cmd.PersistentFlags().Changed("cluster") {
+				overrideActiveCluster(clusterOverride)
+			}
 			if len(args) < 1 {
 				NewResponse(cmd, false, "", "UID is required")
 				return
@@ -92,7 +98,7 @@ func init() {
 }
 
 func getUserQuotas(cmd *cobra.Command, quotaSpec *QuotaSpec) {
-	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
+	c, err := admin.New(activeCluster.EndpointURL, activeCluster.AccessKey, activeCluster.AccessSecret, nil)
 	if err != nil {
 		NewResponse(cmd, false, "", err.Error())
 	}
@@ -128,7 +134,7 @@ func getUserQuotas(cmd *cobra.Command, quotaSpec *QuotaSpec) {
 }
 
 func setUserQuotas(quotaSpec *QuotaSpec) CLIResponse {
-	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
+	c, err := admin.New(activeCluster.EndpointURL, activeCluster.AccessKey, activeCluster.AccessSecret, nil)
 	if err != nil {
 		return NewResponseStruct(false, "", err.Error())
 	}

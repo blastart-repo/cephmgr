@@ -16,6 +16,9 @@ var (
 		Short: "Create new user",
 		Long:  `Create new user.`,
 		Run: func(cmd *cobra.Command, _ []string) {
+			if cmd.PersistentFlags().Changed("cluster") {
+				overrideActiveCluster(clusterOverride)
+			}
 
 			user := &User{
 				ID:          userID,
@@ -40,7 +43,7 @@ func init() {
 
 func createUser(user User) CLIResponse {
 
-	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
+	c, err := admin.New(activeCluster.EndpointURL, activeCluster.AccessKey, activeCluster.AccessSecret, nil)
 	if err != nil {
 		return NewResponseStruct(false, "", err.Error())
 	}
