@@ -66,9 +66,14 @@ user quota
   * ```--access_key``` or ```-k```
   * ```--access_secret``` or ```-s```
   * ```--endpoint_url``` or ```-e```
+  * ```--sensitive``` shows access_key and access_secret fields
 * ```rgw cluster get_active``` Get default active cluster info
+  * ```--sensitive``` shows access_key and access_secret fields
 * ```rgw cluster list``` Get a list of clusters
+  * ```--sensitive``` shows access_key and access_secret fields
 * ```rgw cluster remove``` Removes cluster
   * ```--name``` or ```-n```
+  * ```--sensitive``` shows access_key and access_secret fields
 * ```rgw cluster set_active``` Set default active cluster
   * ```--name``` or ```-n```
+  * ```--sensitive``` shows access_key and access_secret fields

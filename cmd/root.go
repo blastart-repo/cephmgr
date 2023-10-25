@@ -23,6 +23,7 @@ package cmd
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -31,19 +32,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
-
-type Config struct {
-	Hostname     string `mapstructure:"hostname"`
-	AccessKey    string `mapstructure:"accessKey"`
-	AccessSecret string `mapstructure:"accessSecret"`
-}
-
-type Cluster struct {
-	ClusterName  string `mapstructure:"clusterName" json:"cluster_name"`
-	AccessKey    string `mapstructure:"accessKey" json:"access_key"`
-	AccessSecret string `mapstructure:"accessSecret" json:"access_secret"`
-	EndpointURL  string `mapstructure:"endpointURL" json:"endpoint_url"`
-}
 
 type ClusterConfig struct {
 	ActiveClusterName string    `mapstructure:"activeClusterName" json:"active_cluster_name"`
@@ -183,10 +171,10 @@ func overrideActiveCluster(name string) {
 	}
 }
 
-func changeActiveCluster(name string) {
+func changeActiveCluster(name string) error {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, fmt.Sprintf("Could not locate home directory: %s", err.Error()))
+		return errors.New(fmt.Sprintf("could not locate home directory: %s", err.Error()))
 	}
 	configName := ".cephmgr.yaml"
 	for _, c := range clusterConfig.Clusters {
@@ -195,17 +183,18 @@ func changeActiveCluster(name string) {
 			viper.Set("activeClusterName", name)
 			err = viper.WriteConfigAs(filepath.Join(home, configName))
 			if err != nil {
-				fmt.Printf("Cannot write configuration file: %v\n", err)
+				return errors.New(fmt.Sprintf("could not write to config file: %s", err.Error()))
 			}
-			return
+			return nil
 		}
 	}
+	return errors.New(fmt.Sprintf("no clusters with the name %s were found in the available clusters list", name))
 }
 
-func newCluster(cluster Cluster) { // TODO check if the cluster name is unique
+func newCluster(cluster Cluster) error {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, fmt.Sprintf("Could not locate home directory: %s", err.Error()))
+		return errors.New(fmt.Sprintf("could not locate home directory: %s", err.Error()))
 	}
 	configName := ".cephmgr.yaml"
 
@@ -214,15 +203,16 @@ func newCluster(cluster Cluster) { // TODO check if the cluster name is unique
 
 	err = viper.WriteConfigAs(filepath.Join(home, configName))
 	if err != nil {
-		fmt.Printf("Cannot write configuration file: %v\n", err)
+		return errors.New(fmt.Sprintf("could not write to config file: %s", err.Error()))
 	}
+	return nil
 }
 
 // remCluster - helper function for the removeCluster function that uses viper to change the configuration file to remove the cluster.
-func remCluster(name string) {
+func remCluster(name string) error {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, fmt.Sprintf("Could not locate home directory: %s", err.Error()))
+		return errors.New(fmt.Sprintf("could not locate home directory: %s", err.Error()))
 	}
 	configName := ".cephmgr.yaml"
 
@@ -237,6 +227,7 @@ func remCluster(name string) {
 
 	err = viper.WriteConfigAs(filepath.Join(home, configName))
 	if err != nil {
-		fmt.Printf("Cannot write configuration file: %v\n", err)
+		return errors.New(fmt.Sprintf("could not write to config file: %s", err.Error()))
 	}
+	return nil
 }

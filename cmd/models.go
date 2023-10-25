@@ -76,13 +76,27 @@ type BucketInfoUsage struct {
 	Size       string  `json:"size"`
 	NumObjects *uint64 `json:"num_objects"`
 }
+
 type UserCapsResponse struct {
 	UID  string        `json:"user_id" url:"uid"`
 	Caps []UserCapSpec `json:"caps"`
 }
+
 type UserInfoResponse struct {
 	UID         string        `json:"user_id" url:"uid"`
 	DisplayName string        `json:"display_name" url:"display-name"`
 	Email       string        `json:"email" url:"email"`
 	Caps        []UserCapSpec `json:"caps"`
+}
+
+type Cluster struct {
+	ClusterName  string `mapstructure:"clusterName" json:"cluster_name"`
+	AccessKey    string `mapstructure:"accessKey" json:"access_key"`
+	AccessSecret string `mapstructure:"accessSecret" json:"access_secret"`
+	EndpointURL  string `mapstructure:"endpointURL" json:"endpoint_url"`
+}
+
+type SensitiveCluster struct {
+	ClusterName string `json:"cluster_name"`
+	EndpointURL string `json:"endpoint_url"`
 }

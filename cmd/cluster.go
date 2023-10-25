@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/spf13/cobra"
+	"strings"
 )
 
 var (
@@ -75,6 +76,8 @@ func init() {
 	clusterCmd.AddCommand(addClusterCmd)
 	clusterCmd.AddCommand(removeClusterCmd)
 
+	clusterCmd.PersistentFlags().BoolVar(&showSensitive, "sensitive", false, "Show sensitive data (access keys and secrets)")
+
 	listClustersCmd.SetHelpTemplate(clusterListTemplate())
 	listClustersCmd.SetUsageTemplate(clusterListTemplate())
 	getActiveClusterCmd.SetHelpTemplate(clusterGetActiveTemplate())
@@ -102,67 +105,136 @@ func init() {
 	removeClusterCmd.MarkFlagRequired("name")
 }
 
-func listClusters(cmd *cobra.Command) { // TODO don't show access keys and secrets
+func listClusters(cmd *cobra.Command) {
+	var s string
+	var err error
 	if returnJSON {
-		cJSON, err := json.Marshal(clusterConfig.Clusters)
+		s, err = jsonClusters(clusterConfig.Clusters)
 		if err != nil {
 			NewResponse(cmd, false, "", err.Error())
+			return
 		}
-		fmt.Println(string(cJSON))
 	} else {
-		fmt.Println(fmt.Sprintf("%+v", clusterConfig.Clusters))
+		s = printClusters(clusterConfig.Clusters)
 	}
+	fmt.Println(s)
 }
 
 func getActiveCluster(cmd *cobra.Command) {
+	var s string
+	var err error
 	if returnJSON {
-		cJSON, err := json.Marshal(activeCluster)
+		s, err = jsonClusters([]Cluster{activeCluster})
 		if err != nil {
 			NewResponse(cmd, false, "", err.Error())
+			return
 		}
-		fmt.Println(string(cJSON))
 	} else {
-		fmt.Println(fmt.Sprintf("%+v", activeCluster))
+		s = printClusters([]Cluster{activeCluster})
 	}
+	fmt.Println(s)
 }
 
 func setActiveCluster(cmd *cobra.Command, name string) {
-	changeActiveCluster(name)
+	var s string
+	err := changeActiveCluster(name)
+	if err != nil {
+		NewResponse(cmd, false, "", err.Error())
+		return
+	}
 	if returnJSON {
-		cJSON, err := json.Marshal(activeCluster)
+		s, err = jsonClusters([]Cluster{activeCluster})
 		if err != nil {
 			NewResponse(cmd, false, "", err.Error())
+			return
 		}
-		fmt.Println(string(cJSON))
 	} else {
-		fmt.Println(fmt.Sprintf("%+v", activeCluster))
+		s = printClusters([]Cluster{activeCluster})
 	}
+	fmt.Println(s)
 }
 
 // addNewCluster - uses the helper function newCluster to add the new cluster to the config file
 func addNewCluster(cmd *cobra.Command, cluster Cluster) {
-	newCluster(cluster)
+	var s string
+	err := newCluster(cluster)
+	for _, c := range clusterConfig.Clusters {
+		if c.ClusterName == cluster.ClusterName {
+			NewResponse(cmd, false, "", fmt.Sprintf("a cluster with the name %s already exists, please choose another name", cluster.ClusterName))
+			return
+		}
+	}
+	if err != nil {
+		NewResponse(cmd, false, "", err.Error())
+		return
+	}
 	if returnJSON {
-		cJSON, err := json.Marshal(clusterConfig.Clusters)
+		s, err = jsonClusters([]Cluster{cluster})
 		if err != nil {
 			NewResponse(cmd, false, "", err.Error())
+			return
 		}
-		fmt.Println(string(cJSON))
 	} else {
-		fmt.Println(fmt.Sprintf("%+v", clusterConfig.Clusters))
+		s = printClusters([]Cluster{cluster})
 	}
+	fmt.Println(s)
 }
 
 // removeCluster - uses the helper function remCluster to change the config file to remove the cluster from the list of available clusters
 func removeCluster(cmd *cobra.Command, name string) {
-	remCluster(name)
+	var s string
+	err := remCluster(name)
+	if err != nil {
+		NewResponse(cmd, false, "", err.Error())
+		return
+	}
 	if returnJSON {
-		cJSON, err := json.Marshal(clusterConfig.Clusters)
+		s, err = jsonClusters(clusterConfig.Clusters)
 		if err != nil {
 			NewResponse(cmd, false, "", err.Error())
+			return
 		}
-		fmt.Println(string(cJSON))
 	} else {
-		fmt.Println(fmt.Sprintf("%+v", clusterConfig.Clusters))
+		s = printClusters(clusterConfig.Clusters)
+	}
+	fmt.Println(s)
+}
+
+func printClusters(clusters []Cluster) string {
+	var b strings.Builder
+	if showSensitive {
+		fmt.Fprint(&b, "Cluster name\t    Access Key\t\t\t    Access Secret\t\t\t\t    Endpoint URL\n")
+		for _, cluster := range clusters {
+			fmt.Fprintf(&b, "%s\t\t    %s\t    %s\t    %s\n", cluster.ClusterName, cluster.AccessKey, cluster.AccessSecret, cluster.EndpointURL)
+		}
+	} else {
+		fmt.Fprint(&b, "Cluster name\t    Endpoint URL\n")
+		for _, cluster := range clusters {
+			fmt.Fprintf(&b, "%s\t\t    %s\n", cluster.ClusterName, cluster.EndpointURL)
+		}
+	}
+	return b.String()
+}
+
+func jsonClusters(clusters []Cluster) (string, error) {
+	if showSensitive {
+		cJSON, err := json.Marshal(clusters)
+		if err != nil {
+			return "", err
+		}
+		return string(cJSON), err
+	} else {
+		var scluster []SensitiveCluster
+		for _, cluster := range clusters {
+			scluster = append(scluster, SensitiveCluster{
+				ClusterName: cluster.ClusterName,
+				EndpointURL: cluster.EndpointURL,
+			})
+		}
+		cJSON, err := json.Marshal(scluster)
+		if err != nil {
+			return "", err
+		}
+		return string(cJSON), nil
 	}
 }

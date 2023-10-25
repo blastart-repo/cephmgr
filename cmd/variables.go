@@ -8,6 +8,7 @@ var (
 	clusterAccessSecret string
 	clusterEndpointURL  string
 	clusterOverride     string
+	showSensitive       bool
 	userCaps            string
 	userEmail           string
 	userFullname        string

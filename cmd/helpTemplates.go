@@ -241,6 +241,7 @@ Example: cephmgr rgw cluster list
 Flags:
   -j, --json    Return values as json
   -h, --help    help for list
+  --sensitive   shows sensitive values (access_key and access_secret)
 `
 }
 
@@ -252,6 +253,7 @@ Example: cephmgr rgw cluster get_active --json
 Flags:
   -j, --json    Return values as json
   -h, --help    help for get active
+  --sensitive   shows sensitive values (access_key and access_secret)
 `
 }
 
@@ -264,6 +266,7 @@ Flags:
   -n, --name    Cluster name (required)
   -j, --json    Return values as json
   -h, --help    help for set active
+  --sensitive   shows sensitive values (access_key and access_secret)
 `
 }
 
@@ -279,6 +282,7 @@ Flags:
   -e, --endpoint_url    Cluster endpoint URL with scheme (required)
   -j, --json            Return values as json
   -h, --help            help for add
+  --sensitive   shows sensitive values (access_key and access_secret)
 `
 }
 
@@ -291,5 +295,6 @@ Flags:
   -n, --name    Cluster name (required)
   -j, --json    Return values as json
   -h, --help    help for remove
+  --sensitive   shows sensitive values (access_key and access_secret)
 `
 }
