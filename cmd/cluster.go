@@ -102,7 +102,7 @@ func init() {
 	removeClusterCmd.MarkFlagRequired("name")
 }
 
-func listClusters(cmd *cobra.Command) {
+func listClusters(cmd *cobra.Command) { // TODO don't show access keys and secrets
 	if returnJSON {
 		cJSON, err := json.Marshal(clusterConfig.Clusters)
 		if err != nil {

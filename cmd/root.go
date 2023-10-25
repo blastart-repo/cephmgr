@@ -164,7 +164,8 @@ func checkClusters(config ClusterConfig) {
 					return
 				}
 			}
-			fmt.Fprintln(os.Stderr, "Default active cluster does not exist in the list of clusters. Please set a new default active cluster.")
+			fmt.Fprintln(os.Stderr, "Default active cluster does not exist in the list of clusters. Please set a new default active cluster.") // TODO return list of clusters
+			os.Exit(1)
 		}
 	}
 }
@@ -201,15 +202,15 @@ func changeActiveCluster(name string) {
 	}
 }
 
-func newCluster(cluster Cluster) {
+func newCluster(cluster Cluster) { // TODO check if the cluster name is unique
 	home, err := os.UserHomeDir()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, fmt.Sprintf("Could not locate home directory: %s", err.Error()))
 	}
 	configName := ".cephmgr.yaml"
 
-	clusters := append(clusterConfig.Clusters, cluster)
-	viper.Set("clusters", clusters)
+	clusterConfig.Clusters = append(clusterConfig.Clusters, cluster)
+	viper.Set("clusters", clusterConfig.Clusters)
 
 	err = viper.WriteConfigAs(filepath.Join(home, configName))
 	if err != nil {
