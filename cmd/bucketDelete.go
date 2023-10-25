@@ -14,7 +14,14 @@ var (
 		Short: "Delete empty buckets",
 		Long:  "Delete an empty bucket by name",
 		Args:  cobra.ExactArgs(1),
-		Run:   runDeleteBucketCmd,
+		Run: func(cmd *cobra.Command, args []string) {
+			if cmd.PersistentFlags().Changed("cluster") {
+				overrideActiveCluster(clusterOverride)
+			}
+			populated, _ := cmd.Flags().GetBool("populated")
+			response := deleteBucket(args[0], populated)
+			NewResponse(cmd, response.Success, response.Message, response.Error)
+		},
 	}
 )
 
@@ -25,14 +32,8 @@ func init() {
 	deleteBucketsCmd.SetUsageTemplate(bucketDeleteTemplate())
 }
 
-func runDeleteBucketCmd(cmd *cobra.Command, args []string) {
-	populated, _ := cmd.Flags().GetBool("populated")
-	response := deleteBucket(args[0], populated)
-	NewResponse(cmd, response.Success, response.Message, response.Error)
-}
-
 func deleteBucket(bucketName string, populated bool) CLIResponse {
-	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
+	c, err := admin.New(activeCluster.EndpointURL, activeCluster.AccessKey, activeCluster.AccessSecret, nil)
 	if err != nil {
 		return NewResponseStruct(false, "", err.Error())
 	}

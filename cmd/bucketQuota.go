@@ -26,6 +26,9 @@ var (
 		Long:  `todo`,
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			if cmd.PersistentFlags().Changed("cluster") {
+				overrideActiveCluster(clusterOverride)
+			}
 			bucket := &Bucket{
 				Bucket: args[0],
 			}
@@ -38,6 +41,9 @@ var (
 		Long:  `Set bucket quotas`,
 		Args:  cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
+			if cmd.PersistentFlags().Changed("cluster") {
+				overrideActiveCluster(clusterOverride)
+			}
 			quota := &QuotaSpec{
 				UID:    args[0],
 				Bucket: args[1],
@@ -81,7 +87,8 @@ func init() {
 }
 
 func getBucketQuotas(cmd *cobra.Command, bucket Bucket) {
-	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
+
+	c, err := admin.New(activeCluster.EndpointURL, activeCluster.AccessKey, activeCluster.AccessSecret, nil)
 	if err != nil {
 		NewResponse(cmd, false, "", err.Error())
 	}
@@ -121,7 +128,7 @@ func getBucketQuotas(cmd *cobra.Command, bucket Bucket) {
 }
 
 func setBucketQuotas(quotaSpec *QuotaSpec) CLIResponse {
-	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
+	c, err := admin.New(activeCluster.EndpointURL, activeCluster.AccessKey, activeCluster.AccessSecret, nil)
 	if err != nil {
 		return NewResponseStruct(false, "", err.Error())
 	}

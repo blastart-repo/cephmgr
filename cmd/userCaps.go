@@ -47,6 +47,9 @@ var (
 		Long:  `Get user caps`,
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			if cmd.PersistentFlags().Changed("cluster") {
+				overrideActiveCluster(clusterOverride)
+			}
 			var userID string
 			if len(args) > 0 {
 				userID = args[0]
@@ -62,6 +65,9 @@ var (
 		Short: "Add user capabilities",
 		Long:  `Add user capabilities `,
 		Run: func(cmd *cobra.Command, args []string) {
+			if cmd.PersistentFlags().Changed("cluster") {
+				overrideActiveCluster(clusterOverride)
+			}
 			var user User
 			if len(args) > 0 {
 				user = User{
@@ -84,6 +90,9 @@ var (
 		Short: "Remove user capabilities",
 		Long:  `Remove user capabilities`,
 		Run: func(cmd *cobra.Command, args []string) {
+			if cmd.PersistentFlags().Changed("cluster") {
+				overrideActiveCluster(clusterOverride)
+			}
 			var user User
 			if len(args) > 0 {
 				user = User{
@@ -117,7 +126,7 @@ func init() {
 }
 
 func addUserCaps(user User) CLIResponse {
-	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
+	c, err := admin.New(activeCluster.EndpointURL, activeCluster.AccessKey, activeCluster.AccessSecret, nil)
 	if err != nil {
 		return NewResponseStruct(false, "", err.Error())
 	}
@@ -132,7 +141,7 @@ func addUserCaps(user User) CLIResponse {
 }
 
 func removeUserCaps(user User) CLIResponse {
-	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
+	c, err := admin.New(activeCluster.EndpointURL, activeCluster.AccessKey, activeCluster.AccessSecret, nil)
 	if err != nil {
 		return NewResponseStruct(false, "", err.Error())
 	}
@@ -148,7 +157,7 @@ func removeUserCaps(user User) CLIResponse {
 	return NewResponseStruct(true, res, "")
 }
 func getUserCaps(cmd *cobra.Command, user User) {
-	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
+	c, err := admin.New(activeCluster.EndpointURL, activeCluster.AccessKey, activeCluster.AccessSecret, nil)
 	if err != nil {
 		NewResponse(cmd, false, "", err.Error())
 	}
