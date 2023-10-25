@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
-	"text/tabwriter"
 
 	"github.com/ceph/go-ceph/rgw/admin"
 	"github.com/docker/go-units"
@@ -98,33 +96,31 @@ func getUserQuotas(cmd *cobra.Command, quotaSpec *QuotaSpec) {
 	}
 
 	u, err := c.GetUserQuota(context.Background(), admin.QuotaSpec{UID: quotaSpec.UID})
-
 	if err != nil {
 		NewResponse(cmd, false, "", err.Error())
+		return
 	}
-	respQuota := ResponseQuota{
-		UID:        quotaSpec.UID,
-		Bucket:     u.Bucket,
-		Enabled:    u.Enabled,
-		MaxSize:    units.BytesSize(float64(*u.MaxSize)),
-		MaxObjects: u.MaxObjects,
-	}
+
+	header := "UID\tMaxSize\tMaxObjects\tEnabled"
+	dataFormat := "%s\t%v\t%v\t%v"
+	data := []interface{}{quotaSpec.UID, units.BytesSize(float64(*u.MaxSize)), *u.MaxObjects, *u.Enabled}
 
 	switch {
 	case returnJSON:
+		respQuota := ResponseQuota{
+			UID:        quotaSpec.UID,
+			MaxSize:    units.BytesSize(float64(*u.MaxSize)),
+			MaxObjects: u.MaxObjects,
+			Enabled:    u.Enabled,
+		}
 		uJSON, err := json.Marshal(respQuota)
 		if err != nil {
 			NewResponse(cmd, false, "", err.Error())
 		}
 		fmt.Println(string(uJSON))
 	default:
-		w := tabwriter.NewWriter(os.Stdout, 10, 1, 5, ' ', 0)
-		fs := "%s\t%s\t%v\t%v\n"
-		fmt.Fprintln(w, "UID\tMaxSize\tMaxObjects\tEnabled")
-		fmt.Fprintf(w, fs, quotaSpec.UID, units.BytesSize(float64(*u.MaxSize)), *u.MaxObjects, *u.Enabled)
-		w.Flush()
+		printTabularData(header, dataFormat, data...)
 	}
-
 }
 
 func setUserQuotas(quotaSpec *QuotaSpec) CLIResponse {

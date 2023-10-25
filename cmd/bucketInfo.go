@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
-	"text/tabwriter"
 
 	"github.com/ceph/go-ceph/rgw/admin"
 	"github.com/docker/go-units"
@@ -89,27 +87,32 @@ func getBucketInfo(cmd *cobra.Command, bucket Bucket) {
 	b, err := c.GetBucketInfo(context.Background(), admin.Bucket{Bucket: bucket.Bucket})
 	if err != nil {
 		NewResponse(cmd, false, "", err.Error())
+		return
 	}
+
+	header := "ID\tBucket\tOwner"
+	dataFormat := "%s\t%s\t%s"
+	data := []interface{}{
+		b.ID,
+		b.Bucket,
+		b.Owner,
+	}
+
 	switch {
 	case returnJSON:
-		bucket := BucketInfo{
+		bucketInfo := BucketInfo{
 			ID:     b.ID,
 			Bucket: b.Bucket,
 			Owner:  b.Owner,
 		}
-		uJSON, err := json.Marshal(bucket)
+		uJSON, err := json.Marshal(bucketInfo)
 		if err != nil {
 			NewResponse(cmd, false, "", err.Error())
 		}
 		fmt.Println(string(uJSON))
 	default:
-		w := tabwriter.NewWriter(os.Stdout, 10, 1, 5, ' ', 0)
-		fs := "%s\t%s\t%s\n"
-		fmt.Fprintln(w, "ID\tBucket\tOwner")
-		fmt.Fprintf(w, fs, b.ID, b.Bucket, b.Owner)
-		w.Flush()
+		printTabularData(header, dataFormat, data...)
 	}
-
 }
 
 func getBucketInfoUsage(cmd *cobra.Command, bucket Bucket) {
@@ -121,24 +124,30 @@ func getBucketInfoUsage(cmd *cobra.Command, bucket Bucket) {
 	b, err := c.GetBucketInfo(context.Background(), admin.Bucket{Bucket: bucket.Bucket})
 	if err != nil {
 		NewResponse(cmd, false, "", err.Error())
+		return
 	}
+
+	header := "Bucket\tSize\tNumObjects"
+	dataFormat := "%s\t%s\t%d"
+	data := []interface{}{
+		b.Bucket,
+		units.BytesSize(float64(*b.Usage.RgwMain.Size)),
+		int(*b.Usage.RgwMain.NumObjects),
+	}
+
 	switch {
 	case returnJSON:
-		bucket := BucketInfoUsage{
+		bucketInfo := BucketInfoUsage{
 			Bucket:     b.Bucket,
 			Size:       units.BytesSize(float64(*b.Usage.RgwMain.Size)),
 			NumObjects: b.Usage.RgwMain.NumObjects,
 		}
-		uJSON, err := json.Marshal(bucket)
+		uJSON, err := json.Marshal(bucketInfo)
 		if err != nil {
 			NewResponse(cmd, false, "", err.Error())
 		}
 		fmt.Println(string(uJSON))
 	default:
-		w := tabwriter.NewWriter(os.Stdout, 10, 1, 5, ' ', 0)
-		fs := "%s\t%s\t%d\n"
-		fmt.Fprintln(w, "Bucket\tSize\tNumObjects")
-		fmt.Fprintf(w, fs, b.Bucket, units.BytesSize(float64(*b.Usage.RgwMain.Size)), int(*b.Usage.RgwMain.NumObjects))
-		w.Flush()
+		printTabularData(header, dataFormat, data...)
 	}
 }

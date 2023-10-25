@@ -92,3 +92,4 @@ Temporary Items
 .ignores/
 dist/
 cephmgr-s3.coop.yaml
+.idea/

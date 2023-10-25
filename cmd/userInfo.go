@@ -25,15 +25,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
-	"text/tabwriter"
 
 	"github.com/ceph/go-ceph/rgw/admin"
 	"github.com/spf13/cobra"
 )
 
 var (
-	getuserCmd = &cobra.Command{
+	getUserCmd = &cobra.Command{
 		Use:   "get",
 		Short: "Get user info",
 		Long:  `Get user info`,
@@ -57,9 +55,9 @@ var (
 )
 
 func init() {
-	userCmd.AddCommand(getuserCmd)
-	getuserCmd.SetHelpTemplate(getUserHelpTemplate())
-	getuserCmd.SetUsageTemplate(getUserHelpTemplate())
+	userCmd.AddCommand(getUserCmd)
+	getUserCmd.SetHelpTemplate(getUserHelpTemplate())
+	getUserCmd.SetUsageTemplate(getUserHelpTemplate())
 	userCmd.AddCommand(listCmd)
 	listCmd.SetHelpTemplate(listUsersTemplate())
 }
@@ -75,6 +73,11 @@ func getUser(cmd *cobra.Command, user User) {
 		NewResponse(cmd, false, "", err.Error())
 		return
 	}
+
+	header := "UID\tFull Name\tEmail\tCaps"
+	dataFormat := "%s\t%s\t%s\t%v"
+	data := []interface{}{u.ID, u.DisplayName, u.Email, u.Caps}
+
 	switch {
 	case returnJSON:
 		caps := convertUserCapSpec(u.Caps)
@@ -90,13 +93,8 @@ func getUser(cmd *cobra.Command, user User) {
 		}
 		fmt.Println(string(uJSON))
 	default:
-		w := tabwriter.NewWriter(os.Stdout, 10, 1, 5, ' ', 0)
-		fs := "%s\t%s\t%s\t%v\n"
-		fmt.Fprintln(w, "UID\tFull Name\tEmail\tCaps")
-		fmt.Fprintf(w, fs, u.ID, u.DisplayName, u.Email, u.Caps)
-		w.Flush()
+		printTabularData(header, dataFormat, data...)
 	}
-
 }
 
 func listUsers(cmd *cobra.Command) {

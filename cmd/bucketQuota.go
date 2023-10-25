@@ -4,9 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 	"strconv"
-	"text/tabwriter"
 
 	"github.com/ceph/go-ceph/rgw/admin"
 	"github.com/docker/go-units"
@@ -83,7 +81,6 @@ func init() {
 }
 
 func getBucketQuotas(cmd *cobra.Command, bucket Bucket) {
-
 	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
 	if err != nil {
 		NewResponse(cmd, false, "", err.Error())
@@ -92,30 +89,35 @@ func getBucketQuotas(cmd *cobra.Command, bucket Bucket) {
 	b, err := c.GetBucketInfo(context.Background(), admin.Bucket{Bucket: bucket.Bucket})
 	if err != nil {
 		NewResponse(cmd, false, "", err.Error())
+		return
 	}
-	respQuota := ResponseQuota{
-		Bucket:     b.Bucket,
-		Enabled:    b.BucketQuota.Enabled,
-		MaxSize:    units.BytesSize(float64(*b.BucketQuota.MaxSize)),
-		MaxObjects: b.BucketQuota.MaxObjects,
+
+	header := "Bucket\tMaxSize\tMaxObjects\tEnabled"
+	dataFormat := "%s\t%v\t%s\t%t"
+	formattedMaxObjects := strconv.FormatInt(*b.BucketQuota.MaxObjects, 10)
+	data := []interface{}{
+		b.Bucket,
+		units.BytesSize(float64(*b.BucketQuota.MaxSize)),
+		formattedMaxObjects,
+		*b.BucketQuota.Enabled,
 	}
 
 	switch {
 	case returnJSON:
+		respQuota := ResponseQuota{
+			Bucket:     b.Bucket,
+			Enabled:    b.BucketQuota.Enabled,
+			MaxSize:    units.BytesSize(float64(*b.BucketQuota.MaxSize)),
+			MaxObjects: b.BucketQuota.MaxObjects,
+		}
 		uJSON, err := json.Marshal(respQuota)
 		if err != nil {
 			NewResponse(cmd, false, "", err.Error())
 		}
 		fmt.Println(string(uJSON))
 	default:
-		w := tabwriter.NewWriter(os.Stdout, 10, 1, 5, ' ', 0)
-		fs := "%s\t%v\t%s\t%t\n"
-		fmt.Fprintln(w, "Bucket\tMaxSize\tMaxObjects\tEnabled")
-		formattedMaxObjects := strconv.FormatInt(*b.BucketQuota.MaxObjects, 10)
-		fmt.Fprintf(w, fs, b.Bucket, units.BytesSize(float64(*b.BucketQuota.MaxSize)), formattedMaxObjects, *b.BucketQuota.Enabled)
-		w.Flush()
+		printTabularData(header, dataFormat, data...)
 	}
-
 }
 
 func setBucketQuotas(quotaSpec *QuotaSpec) CLIResponse {
