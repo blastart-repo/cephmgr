@@ -33,7 +33,7 @@ var (
 				return
 			}
 
-			quota := &QuotaSpec{
+			quota := &admin.QuotaSpec{
 				UID: args[0],
 			}
 			getUserQuotas(cmd, quota)
@@ -54,7 +54,7 @@ var (
 				return
 			}
 
-			quota := &QuotaSpec{
+			quota := &admin.QuotaSpec{
 				UID: args[0],
 			}
 
@@ -95,13 +95,13 @@ func init() {
 	userQuotaSetCmd.Flags().BoolVar(&enabledFlag, "enabled", false, "Enable or disable quotas")
 }
 
-func getUserQuotas(cmd *cobra.Command, quotaSpec *QuotaSpec) {
+func getUserQuotas(cmd *cobra.Command, quotaSpec *admin.QuotaSpec) {
 	c, err := admin.New(activeCluster.EndpointURL, activeCluster.AccessKey, activeCluster.AccessSecret, nil)
 	if err != nil {
 		NewResponse(cmd, false, "", err.Error())
 	}
 
-	u, err := c.GetUserQuota(context.Background(), admin.QuotaSpec{UID: quotaSpec.UID})
+	u, err := c.GetUserQuota(context.Background(), *quotaSpec)
 	if err != nil {
 		NewResponse(cmd, false, "", err.Error())
 		return
@@ -129,20 +129,13 @@ func getUserQuotas(cmd *cobra.Command, quotaSpec *QuotaSpec) {
 	}
 }
 
-func setUserQuotas(quotaSpec *QuotaSpec) CLIResponse {
+func setUserQuotas(quotaSpec *admin.QuotaSpec) CLIResponse {
 	c, err := admin.New(activeCluster.EndpointURL, activeCluster.AccessKey, activeCluster.AccessSecret, nil)
 	if err != nil {
 		return NewResponseStruct(false, "", err.Error())
 	}
 
-	adminQuotaSpec := admin.QuotaSpec{
-		UID:        quotaSpec.UID,
-		MaxObjects: quotaSpec.MaxObjects,
-		MaxSize:    quotaSpec.MaxSize,
-		Enabled:    quotaSpec.Enabled,
-	}
-
-	err = c.SetUserQuota(context.Background(), adminQuotaSpec)
+	err = c.SetUserQuota(context.Background(), *quotaSpec)
 	if err != nil {
 		return NewResponseStruct(false, "", err.Error())
 	}

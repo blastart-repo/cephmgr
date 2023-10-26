@@ -40,7 +40,7 @@ var (
 			if cmd.PersistentFlags().Changed("cluster") {
 				overrideActiveCluster(clusterOverride)
 			}
-			user := &User{
+			user := &admin.User{
 				ID: args[0],
 			}
 			getUser(cmd, *user)
@@ -68,13 +68,13 @@ func init() {
 	listCmd.SetHelpTemplate(listUsersTemplate())
 }
 
-func getUser(cmd *cobra.Command, user User) {
+func getUser(cmd *cobra.Command, user admin.User) {
 	c, err := admin.New(activeCluster.EndpointURL, activeCluster.AccessKey, activeCluster.AccessSecret, nil)
 	if err != nil {
 		NewResponse(cmd, false, "", err.Error())
 	}
 
-	u, err := c.GetUser(context.Background(), admin.User{ID: user.ID})
+	u, err := c.GetUser(context.Background(), user)
 	if err != nil {
 		NewResponse(cmd, false, "", err.Error())
 		return
@@ -86,12 +86,11 @@ func getUser(cmd *cobra.Command, user User) {
 
 	switch {
 	case returnJSON:
-		caps := convertUserCapSpec(u.Caps)
 		respStruct := UserInfoResponse{
 			UID:         u.ID,
 			DisplayName: u.DisplayName,
 			Email:       u.Email,
-			Caps:        caps,
+			Caps:        u.Caps,
 		}
 		uJSON, err := json.Marshal(respStruct)
 		if err != nil {

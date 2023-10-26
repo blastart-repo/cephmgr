@@ -17,9 +17,9 @@ var (
 			if cmd.PersistentFlags().Changed("cluster") {
 				overrideActiveCluster(clusterOverride)
 			}
-			var user *User
+			var user *admin.User
 			if len(args) > 0 {
-				user = &User{
+				user = &admin.User{
 					ID:          args[0],
 					DisplayName: userFullname,
 					Email:       userEmail,
@@ -41,16 +41,16 @@ func init() {
 
 }
 
-func modifyUser(user User) CLIResponse {
+func modifyUser(user admin.User) CLIResponse {
 
 	c, err := admin.New(activeCluster.EndpointURL, activeCluster.AccessKey, activeCluster.AccessSecret, nil)
 	if err != nil {
 		return NewResponseStruct(false, "", err.Error())
 	}
-	_, err = c.ModifyUser(context.Background(), admin.User{ID: user.ID, DisplayName: user.DisplayName, Email: user.Email})
+	_, err = c.ModifyUser(context.Background(), user)
 	if err != nil {
 		return NewResponseStruct(false, "", err.Error())
 	}
 
-	return NewResponseStruct(true, "User info modifyed", "")
+	return NewResponseStruct(true, "User info modified", "")
 }

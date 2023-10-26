@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/ceph/go-ceph/rgw/admin"
@@ -20,7 +19,7 @@ var (
 				overrideActiveCluster(clusterOverride)
 			}
 
-			user := &User{
+			user := &admin.User{
 				ID:          userID,
 				DisplayName: userFullname,
 				Email:       userEmail,
@@ -41,22 +40,17 @@ func init() {
 	createCmd.SetHelpTemplate(userCreateTemplate())
 }
 
-func createUser(user User) CLIResponse {
+func createUser(user admin.User) CLIResponse {
 
 	c, err := admin.New(activeCluster.EndpointURL, activeCluster.AccessKey, activeCluster.AccessSecret, nil)
 	if err != nil {
 		return NewResponseStruct(false, "", err.Error())
 	}
-	users, err := c.CreateUser(context.Background(), admin.User{ID: user.ID, DisplayName: user.DisplayName, UserCaps: user.UserCaps})
+	users, err := c.CreateUser(context.Background(), user)
 
 	if err != nil {
 		return NewResponseStruct(false, "", err.Error())
 	}
 
-	buser, _ := json.Marshal(users)
-
-	var userdata User
-	_ = json.Unmarshal([]byte(buser), &userdata)
-
-	return NewResponseStruct(true, fmt.Sprintf("Created user for %s", userdata.DisplayName), "")
+	return NewResponseStruct(true, fmt.Sprintf("Created user for %s", users.DisplayName), "")
 }

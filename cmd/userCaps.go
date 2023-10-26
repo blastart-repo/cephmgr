@@ -54,7 +54,7 @@ var (
 			if len(args) > 0 {
 				userID = args[0]
 			}
-			user := &User{
+			user := &admin.User{
 				ID: userID,
 			}
 			getUserCaps(cmd, *user)
@@ -68,9 +68,9 @@ var (
 			if cmd.PersistentFlags().Changed("cluster") {
 				overrideActiveCluster(clusterOverride)
 			}
-			var user User
+			var user admin.User
 			if len(args) > 0 {
-				user = User{
+				user = admin.User{
 					ID:       args[0],
 					UserCaps: userCaps,
 				}
@@ -93,9 +93,9 @@ var (
 			if cmd.PersistentFlags().Changed("cluster") {
 				overrideActiveCluster(clusterOverride)
 			}
-			var user User
+			var user admin.User
 			if len(args) > 0 {
-				user = User{
+				user = admin.User{
 					ID:       args[0],
 					UserCaps: userCaps,
 				}
@@ -125,7 +125,7 @@ func init() {
 	removeCapsCmd.SetHelpTemplate(userRemoveCapsTemplate())
 }
 
-func addUserCaps(user User) CLIResponse {
+func addUserCaps(user admin.User) CLIResponse {
 	c, err := admin.New(activeCluster.EndpointURL, activeCluster.AccessKey, activeCluster.AccessSecret, nil)
 	if err != nil {
 		return NewResponseStruct(false, "", err.Error())
@@ -140,7 +140,7 @@ func addUserCaps(user User) CLIResponse {
 	return NewResponseStruct(true, "New user capability added.", "")
 }
 
-func removeUserCaps(user User) CLIResponse {
+func removeUserCaps(user admin.User) CLIResponse {
 	c, err := admin.New(activeCluster.EndpointURL, activeCluster.AccessKey, activeCluster.AccessSecret, nil)
 	if err != nil {
 		return NewResponseStruct(false, "", err.Error())
@@ -156,13 +156,13 @@ func removeUserCaps(user User) CLIResponse {
 
 	return NewResponseStruct(true, res, "")
 }
-func getUserCaps(cmd *cobra.Command, user User) {
+func getUserCaps(cmd *cobra.Command, user admin.User) {
 	c, err := admin.New(activeCluster.EndpointURL, activeCluster.AccessKey, activeCluster.AccessSecret, nil)
 	if err != nil {
 		NewResponse(cmd, false, "", err.Error())
 	}
 
-	u, err := c.GetUser(context.Background(), admin.User{ID: user.ID})
+	u, err := c.GetUser(context.Background(), user)
 	if err != nil {
 		NewResponse(cmd, false, "", err.Error())
 		return
@@ -174,8 +174,7 @@ func getUserCaps(cmd *cobra.Command, user User) {
 
 	switch {
 	case returnJSON:
-		caps := convertUserCapSpec(u.Caps)
-		uJSON, err := json.Marshal(caps)
+		uJSON, err := json.Marshal(u.Caps)
 		if err != nil {
 			NewResponse(cmd, false, "", err.Error())
 		}

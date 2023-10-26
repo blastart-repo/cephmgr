@@ -18,6 +18,7 @@ var (
 			if cmd.PersistentFlags().Changed("cluster") {
 				overrideActiveCluster(clusterOverride)
 			}
+
 			populated, _ := cmd.Flags().GetBool("populated")
 			response := deleteBucket(args[0], populated)
 			NewResponse(cmd, response.Success, response.Message, response.Error)
@@ -38,10 +39,9 @@ func deleteBucket(bucketName string, populated bool) CLIResponse {
 		return NewResponseStruct(false, "", err.Error())
 	}
 
-	purgeObject := &populated
 	bucket := admin.Bucket{
 		Bucket:      bucketName,
-		PurgeObject: purgeObject,
+		PurgeObject: &populated,
 	}
 
 	err = c.RemoveBucket(context.Background(), bucket)

@@ -29,7 +29,7 @@ var (
 			if cmd.PersistentFlags().Changed("cluster") {
 				overrideActiveCluster(clusterOverride)
 			}
-			bucket := &Bucket{
+			bucket := &admin.Bucket{
 				Bucket: args[0],
 			}
 			getBucketQuotas(cmd, *bucket)
@@ -44,7 +44,7 @@ var (
 			if cmd.PersistentFlags().Changed("cluster") {
 				overrideActiveCluster(clusterOverride)
 			}
-			quota := &QuotaSpec{
+			quota := &admin.QuotaSpec{
 				UID:    args[0],
 				Bucket: args[1],
 			}
@@ -86,14 +86,14 @@ func init() {
 	bucketQuotaSetCmd.SetUsageTemplate(bucketQuotaSetTemplate())
 }
 
-func getBucketQuotas(cmd *cobra.Command, bucket Bucket) {
+func getBucketQuotas(cmd *cobra.Command, bucket admin.Bucket) {
 
 	c, err := admin.New(activeCluster.EndpointURL, activeCluster.AccessKey, activeCluster.AccessSecret, nil)
 	if err != nil {
 		NewResponse(cmd, false, "", err.Error())
 	}
 
-	b, err := c.GetBucketInfo(context.Background(), admin.Bucket{Bucket: bucket.Bucket})
+	b, err := c.GetBucketInfo(context.Background(), bucket)
 	if err != nil {
 		NewResponse(cmd, false, "", err.Error())
 		return
@@ -127,21 +127,14 @@ func getBucketQuotas(cmd *cobra.Command, bucket Bucket) {
 	}
 }
 
-func setBucketQuotas(quotaSpec *QuotaSpec) CLIResponse {
+func setBucketQuotas(quotaSpec *admin.QuotaSpec) CLIResponse {
 	c, err := admin.New(activeCluster.EndpointURL, activeCluster.AccessKey, activeCluster.AccessSecret, nil)
 	if err != nil {
 		return NewResponseStruct(false, "", err.Error())
 	}
 	valueKb := int(bytesToKB(*quotaSpec.MaxSize))
-	adminQuotaSpec := admin.QuotaSpec{
-		UID:        quotaSpec.UID,
-		Bucket:     quotaSpec.Bucket,
-		MaxObjects: quotaSpec.MaxObjects,
-		MaxSize:    quotaSpec.MaxSize,
-		Enabled:    quotaSpec.Enabled,
-		MaxSizeKb:  &valueKb,
-	}
-	err = c.SetIndividualBucketQuota(context.Background(), adminQuotaSpec)
+	quotaSpec.MaxSizeKb = &valueKb
+	err = c.SetIndividualBucketQuota(context.Background(), *quotaSpec)
 	if err != nil {
 		return NewResponseStruct(false, "", err.Error())
 	}

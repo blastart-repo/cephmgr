@@ -31,7 +31,7 @@ var (
 			if cmd.PersistentFlags().Changed("cluster") {
 				overrideActiveCluster(clusterOverride)
 			}
-			bucket := &Bucket{
+			bucket := &admin.Bucket{
 				Bucket: args[0],
 			}
 
@@ -83,13 +83,13 @@ func listBuckets(cmd *cobra.Command) {
 	}
 }
 
-func getBucketInfo(cmd *cobra.Command, bucket Bucket) {
+func getBucketInfo(cmd *cobra.Command, bucket admin.Bucket) {
 	c, err := admin.New(activeCluster.EndpointURL, activeCluster.AccessKey, activeCluster.AccessSecret, nil)
 	if err != nil {
 		NewResponse(cmd, false, "", err.Error())
 	}
 
-	b, err := c.GetBucketInfo(context.Background(), admin.Bucket{Bucket: bucket.Bucket})
+	b, err := c.GetBucketInfo(context.Background(), bucket)
 	if err != nil {
 		NewResponse(cmd, false, "", err.Error())
 		return
@@ -120,13 +120,13 @@ func getBucketInfo(cmd *cobra.Command, bucket Bucket) {
 	}
 }
 
-func getBucketInfoUsage(cmd *cobra.Command, bucket Bucket) {
+func getBucketInfoUsage(cmd *cobra.Command, bucket admin.Bucket) {
 	c, err := admin.New(activeCluster.EndpointURL, activeCluster.AccessKey, activeCluster.AccessSecret, nil)
 	if err != nil {
 		NewResponse(cmd, false, "", err.Error())
 	}
 
-	b, err := c.GetBucketInfo(context.Background(), admin.Bucket{Bucket: bucket.Bucket})
+	b, err := c.GetBucketInfo(context.Background(), bucket)
 	if err != nil {
 		NewResponse(cmd, false, "", err.Error())
 		return

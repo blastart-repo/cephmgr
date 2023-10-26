@@ -23,7 +23,7 @@ var (
 			if len(args) > 0 {
 				userID = args[0] // Use the first argument as the UID
 			}
-			user := &User{
+			user := &admin.User{
 				ID: userID,
 			}
 			resp := deleteUser(*user)
@@ -39,14 +39,14 @@ func init() {
 
 }
 
-func deleteUser(user User) CLIResponse {
+func deleteUser(user admin.User) CLIResponse {
 
 	c, err := admin.New(activeCluster.EndpointURL, activeCluster.AccessKey, activeCluster.AccessSecret, nil)
 	if err != nil {
 		return NewResponseStruct(false, "", err.Error())
 	}
 
-	err = c.RemoveUser(context.Background(), admin.User{ID: user.ID})
+	err = c.RemoveUser(context.Background(), user)
 
 	if err != nil {
 		return NewResponseStruct(false, "", err.Error())
