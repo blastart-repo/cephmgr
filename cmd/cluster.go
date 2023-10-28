@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/spf13/cobra"
-	"strings"
+	"os"
+	"text/tabwriter"
 )
 
 var (
@@ -114,10 +115,10 @@ func listClusters(cmd *cobra.Command) {
 			NewResponse(cmd, false, "", err.Error())
 			return
 		}
+		fmt.Println(s)
 	} else {
-		s = printClusters(clusterConfig.Clusters)
+		printClusters(clusterConfig.Clusters)
 	}
-	fmt.Println(s)
 }
 
 func getActiveCluster(cmd *cobra.Command) {
@@ -129,10 +130,10 @@ func getActiveCluster(cmd *cobra.Command) {
 			NewResponse(cmd, false, "", err.Error())
 			return
 		}
+		fmt.Println(s)
 	} else {
-		s = printClusters([]Cluster{activeCluster})
+		printClusters([]Cluster{activeCluster})
 	}
-	fmt.Println(s)
 }
 
 func setActiveCluster(cmd *cobra.Command, name string) {
@@ -148,10 +149,10 @@ func setActiveCluster(cmd *cobra.Command, name string) {
 			NewResponse(cmd, false, "", err.Error())
 			return
 		}
+		fmt.Println(s)
 	} else {
-		s = printClusters([]Cluster{activeCluster})
+		printClusters([]Cluster{activeCluster})
 	}
-	fmt.Println(s)
 }
 
 // addNewCluster - uses the helper function newCluster to add the new cluster to the config file
@@ -174,10 +175,10 @@ func addNewCluster(cmd *cobra.Command, cluster Cluster) {
 			NewResponse(cmd, false, "", err.Error())
 			return
 		}
+		fmt.Println(s)
 	} else {
-		s = printClusters([]Cluster{cluster})
+		printClusters([]Cluster{cluster})
 	}
-	fmt.Println(s)
 }
 
 // removeCluster - uses the helper function remCluster to change the config file to remove the cluster from the list of available clusters
@@ -194,26 +195,26 @@ func removeCluster(cmd *cobra.Command, name string) {
 			NewResponse(cmd, false, "", err.Error())
 			return
 		}
+		fmt.Println(s)
 	} else {
-		s = printClusters(clusterConfig.Clusters)
+		printClusters(clusterConfig.Clusters)
 	}
-	fmt.Println(s)
 }
 
-func printClusters(clusters []Cluster) string {
-	var b strings.Builder
+func printClusters(clusters []Cluster) {
+	w := tabwriter.NewWriter(os.Stdout, 10, 1, 5, ' ', 0)
 	if showSensitive {
-		fmt.Fprint(&b, "Cluster name\t    Access Key\t\t\t    Access Secret\t\t\t\t    Endpoint URL\n")
+		fmt.Fprint(w, "Cluster name\tAccess Key\tAccess Secret\tEndpoint URL\n")
 		for _, cluster := range clusters {
-			fmt.Fprintf(&b, "%s\t\t    %s\t    %s\t    %s\n", cluster.ClusterName, cluster.AccessKey, cluster.AccessSecret, cluster.EndpointURL)
+			fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", cluster.ClusterName, cluster.AccessKey, cluster.AccessSecret, cluster.EndpointURL)
 		}
 	} else {
-		fmt.Fprint(&b, "Cluster name\t    Endpoint URL\n")
+		fmt.Fprint(w, "Cluster name\tEndpoint URL\n")
 		for _, cluster := range clusters {
-			fmt.Fprintf(&b, "%s\t\t    %s\n", cluster.ClusterName, cluster.EndpointURL)
+			fmt.Fprintf(w, "%s\t%s\n", cluster.ClusterName, cluster.EndpointURL)
 		}
 	}
-	return b.String()
+	w.Flush()
 }
 
 func jsonClusters(clusters []Cluster) (string, error) {

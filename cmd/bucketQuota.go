@@ -132,12 +132,15 @@ func setBucketQuotas(quotaSpec *admin.QuotaSpec) CLIResponse {
 	if err != nil {
 		return NewResponseStruct(false, "", err.Error())
 	}
+
 	valueKb := int(bytesToKB(*quotaSpec.MaxSize))
 	quotaSpec.MaxSizeKb = &valueKb
+
 	err = c.SetIndividualBucketQuota(context.Background(), *quotaSpec)
 	if err != nil {
 		return NewResponseStruct(false, "", err.Error())
 	}
+
 	successMessage := "Quota set successfully"
 	return NewResponseStruct(true, successMessage, "")
 }
