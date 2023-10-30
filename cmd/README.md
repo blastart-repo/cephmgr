@@ -1,6 +1,6 @@
 ## User
 
-flag ```--json``` short ````-j`` prints all responses in json
+flag ```--json``` short ```-j``` prints all responses in json
 ### RGW
 user info
 * ```cephmgr rgw user list``` - get use list
@@ -53,4 +53,24 @@ user quota
 * ```rgw bucket quota set <UID> <Bucket> [flags]```
     * ```--max-objects=<int>``` bucket quota max objects
     * ```--max-size=<int>```  bucket quota max size in bites
+
+    * ```--max-size-kb=<int>``` bucket quota max size in Kb
     * ```--enabled=<bool>``` enable/disable bucket quotas
+
+
+## Cluster
+### RGW
+
+
+* ```rgw cluster add``` Add new cluster
+  * ```--name``` or ```-n```
+  * ```--access_key``` or ```-k```
+  * ```--access_secret``` or ```-s```
+  * ```--endpoint_url``` or ```-e```
+* ```rgw cluster get_active``` Get default active cluster info
+* ```rgw cluster list``` Get a list of clusters
+* ```rgw cluster remove``` Removes cluster
+  * ```--name``` or ```-n```
+* ```rgw cluster set_active``` Set default active cluster
+  * ```--name``` or ```-n```
+

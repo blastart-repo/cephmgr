@@ -14,6 +14,9 @@ var (
 		Short: "Modify user",
 		Long:  `Modify user`,
 		Run: func(cmd *cobra.Command, args []string) {
+			if cmd.PersistentFlags().Changed("cluster") {
+				overrideActiveCluster(clusterOverride)
+			}
 			var user *User
 			if len(args) > 0 {
 				user = &User{
@@ -40,7 +43,7 @@ func init() {
 
 func modifyUser(user User) CLIResponse {
 
-	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
+	c, err := admin.New(activeCluster.EndpointURL, activeCluster.AccessKey, activeCluster.AccessSecret, nil)
 	if err != nil {
 		return NewResponseStruct(false, "", err.Error())
 	}

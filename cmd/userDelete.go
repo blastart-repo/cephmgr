@@ -16,6 +16,9 @@ var (
 		Long:  `Delete user`,
 		Args:  cobra.MaximumNArgs(1), // Accept 0 or 1 argument (UID)
 		Run: func(cmd *cobra.Command, args []string) {
+			if cmd.PersistentFlags().Changed("cluster") {
+				overrideActiveCluster(clusterOverride)
+			}
 			var userID string
 			if len(args) > 0 {
 				userID = args[0] // Use the first argument as the UID
@@ -31,14 +34,14 @@ var (
 
 func init() {
 	userCmd.AddCommand(deleteCmd)
-	deleteCmd.MarkFlagRequired("user")
+	deleteCmd.MarkPersistentFlagRequired("user")
 	deleteCmd.SetHelpTemplate(userDeleteTemplate())
 
 }
 
 func deleteUser(user User) CLIResponse {
 
-	c, err := admin.New(cephHost, cephAccessKey, cephAccessSecret, nil)
+	c, err := admin.New(activeCluster.EndpointURL, activeCluster.AccessKey, activeCluster.AccessSecret, nil)
 	if err != nil {
 		return NewResponseStruct(false, "", err.Error())
 	}
