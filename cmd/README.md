@@ -53,5 +53,4 @@ user quota
 * ```rgw bucket quota set <UID> <Bucket> [flags]```
     * ```--max-objects=<int>``` bucket quota max objects
     * ```--max-size=<int>```  bucket quota max size in bites
-
     * ```--enabled=<bool>``` enable/disable bucket quotas
